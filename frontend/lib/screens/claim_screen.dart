@@ -1,4 +1,10 @@
+import 'dart:io';
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 import '../models/hotspot.dart';
 import '../services/demo_data.dart';
 import '../theme/app_theme.dart';
@@ -6,8 +12,13 @@ import '../widgets/damage_gauge.dart';
 
 class ClaimScreen extends StatefulWidget {
   final Hotspot hotspot;
+  final String? capturedImagePath;
 
-  const ClaimScreen({super.key, required this.hotspot});
+  const ClaimScreen({
+    super.key,
+    required this.hotspot,
+    this.capturedImagePath,
+  });
 
   @override
   State<ClaimScreen> createState() => _ClaimScreenState();
@@ -38,107 +49,415 @@ class _ClaimScreenState extends State<ClaimScreen>
     super.dispose();
   }
 
+  // ─── PDF generation ────────────────────────────────────────────────────────
+
   Future<void> _generateReport() async {
     setState(() => _isGenerating = true);
-    await Future.delayed(const Duration(milliseconds: 2500));
-    if (!mounted) return;
-    setState(() {
-      _isGenerating = false;
-      _isGenerated = true;
-    });
-    _showSuccessDialog();
+
+    try {
+      final pdfBytes = await _buildPdf();
+      if (!mounted) return;
+      setState(() {
+        _isGenerating = false;
+        _isGenerated = true;
+      });
+      await Printing.layoutPdf(
+        onLayout: (format) async => Uint8List.fromList(pdfBytes),
+        name: 'CLM-2024-001_AgriSentinel_Dossier.pdf',
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isGenerating = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('PDF generation failed: $e'),
+          backgroundColor: AppColors.alertHigh,
+        ),
+      );
+    }
   }
 
-  void _showSuccessDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        backgroundColor: AppColors.card,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: AppColors.accent, width: 1),
+  Future<List<int>> _buildPdf() async {
+    final pdf = pw.Document(
+      title: 'AgriSentinel Claim Dossier — CLM-2024-001',
+      author: 'AgriSentinel AI System',
+    );
+
+    final analysis = DemoData.aiAnalysis;
+    final claim = DemoData.claim;
+    final parcel = widget.hotspot.landParcel;
+
+    // Load captured image bytes if available (native only — no File API on web)
+    pw.MemoryImage? capturedImg;
+    if (!kIsWeb && widget.capturedImagePath != null) {
+      try {
+        final bytes = await File(widget.capturedImagePath!).readAsBytes();
+        capturedImg = pw.MemoryImage(bytes);
+      } catch (_) {
+        // ignore if file unreadable
+      }
+    }
+
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(36),
+        header: (_) => _pdfHeader(),
+        footer: (ctx) => _pdfFooter(ctx),
+        build: (ctx) => [
+          _pdfClaimBanner(claim),
+          pw.SizedBox(height: 16),
+          _pdfSection('FARMER & LAND DETAILS'),
+          _pdfTable([
+            ['Farmer Name', DemoData.farmer.name],
+            ['Farmer ID', DemoData.farmer.farmerId],
+            ['Region', DemoData.farmer.region],
+            if (parcel != null) ...[
+              ['Parcel ID', parcel.parcelId],
+              ['Registered Area', '${parcel.registeredAreaHa} ha'],
+              ['Crop Type', widget.hotspot.cropType],
+              ['Season', parcel.cropSeason],
+            ],
+          ]),
+          pw.SizedBox(height: 16),
+          _pdfSection('SATELLITE DETECTION DATA'),
+          _pdfTable([
+            ['Hotspot ID', widget.hotspot.id],
+            ['Detection Date', '10 Mar 2024'],
+            ['NDVI Before', '${analysis['ndviBefore']}  (Healthy)'],
+            ['NDVI After', '${analysis['ndviAfter']}  (Damaged)'],
+            ['NDVI Drop', widget.hotspot.ndviDeltaLabel],
+            ['Estimated Damage Area', '${widget.hotspot.estimatedAreaHa} ha'],
+            ['Damage Cause', widget.hotspot.damageCause],
+            ['Severity', widget.hotspot.severity.toUpperCase()],
+          ]),
+          pw.SizedBox(height: 16),
+          _pdfSection('AI DAMAGE ANALYSIS'),
+          _pdfTable([
+            ['Evidence ID', analysis['evidenceId'] as String],
+            ['Damage Percentage', '${analysis['damagePercentage']}%'],
+            ['Healthy Pixel Ratio', '${((analysis['healthyPixelRatio'] as double) * 100).toStringAsFixed(1)}%'],
+            ['Damaged Pixel Ratio', '${((analysis['damagedPixelRatio'] as double) * 100).toStringAsFixed(1)}%'],
+            ['AI Confidence Score', '${((analysis['confidenceScore'] as double) * 100).toStringAsFixed(0)}%'],
+            ['Damage Classification', analysis['damageClass'] as String],
+          ]),
+          if (capturedImg != null) ...[
+            pw.SizedBox(height: 16),
+            _pdfSection('GROUND EVIDENCE PHOTO'),
+            pw.SizedBox(height: 8),
+            pw.Center(
+              child: pw.ClipRRect(
+                horizontalRadius: 6,
+                verticalRadius: 6,
+                child: pw.Image(capturedImg, height: 200, fit: pw.BoxFit.cover),
+              ),
+            ),
+            pw.SizedBox(height: 6),
+            pw.Center(
+              child: pw.Text(
+                'Captured: ${widget.hotspot.latitude.toStringAsFixed(4)}, '
+                '${widget.hotspot.longitude.toStringAsFixed(4)}  •  12 Mar 2024',
+                style: pw.TextStyle(
+                  fontSize: 9,
+                  color: PdfColors.grey600,
+                ),
+              ),
+            ),
+          ],
+          pw.SizedBox(height: 16),
+          _pdfSection('EVIDENCE CHAIN'),
+          _pdfEvidenceChain(),
+          pw.SizedBox(height: 24),
+          _pdfComplianceBox(),
+        ],
+      ),
+    );
+
+    return pdf.save();
+  }
+
+  pw.Widget _pdfHeader() {
+    return pw.Container(
+      padding: const pw.EdgeInsets.only(bottom: 12),
+      decoration: const pw.BoxDecoration(
+        border: pw.Border(
+          bottom: pw.BorderSide(color: PdfColors.green800, width: 2),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(28),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+      ),
+      child: pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        children: [
+          pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.accent.withValues(alpha: 0.12),
-                  border: Border.all(color: AppColors.accent, width: 2),
-                ),
-                child: const Icon(
-                  Icons.check_circle_outline,
-                  color: AppColors.accent,
-                  size: 32,
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Report Generated!',
-                style: TextStyle(
-                  color: AppColors.textPrimary,
+              pw.Text(
+                'AgriSentinel',
+                style: pw.TextStyle(
                   fontSize: 20,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: pw.FontWeight.bold,
+                  color: PdfColors.green800,
                 ),
               ),
-              const SizedBox(height: 8),
-              Text(
-                'CLM-2024-001_dossier.pdf',
-                style: const TextStyle(
-                  color: AppColors.accent,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  fontFamily: 'monospace',
-                ),
-              ),
-              const SizedBox(height: 6),
-              const Text(
-                '842 KB  •  AIMS Compliant',
-                style: TextStyle(
-                  color: AppColors.textMuted,
-                  fontSize: 11,
-                ),
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'The verified claim dossier is ready for submission to your insurance provider or government agricultural office.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 12,
-                  height: 1.5,
-                ),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Close'),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.download, size: 16),
-                      label: const Text('Download'),
-                    ),
-                  ),
-                ],
+              pw.Text(
+                'Satellite-Guided Crop Damage Verification System',
+                style: pw.TextStyle(fontSize: 9, color: PdfColors.grey600),
               ),
             ],
           ),
-        ),
+          pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.end,
+            children: [
+              pw.Text(
+                'VERIFIED CLAIM DOSSIER',
+                style: pw.TextStyle(
+                  fontSize: 10,
+                  fontWeight: pw.FontWeight.bold,
+                  color: PdfColors.green800,
+                ),
+              ),
+              pw.Text(
+                'AIMS Compliant  •  AI-Verified',
+                style: pw.TextStyle(fontSize: 8, color: PdfColors.grey600),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
+
+  pw.Widget _pdfFooter(pw.Context ctx) {
+    return pw.Container(
+      padding: const pw.EdgeInsets.only(top: 8),
+      decoration: const pw.BoxDecoration(
+        border: pw.Border(
+          top: pw.BorderSide(color: PdfColors.grey300, width: 0.5),
+        ),
+      ),
+      child: pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        children: [
+          pw.Text(
+            'CLM-2024-001  •  Generated by AgriSentinel  •  Palakkad District, Kerala',
+            style: pw.TextStyle(fontSize: 8, color: PdfColors.grey500),
+          ),
+          pw.Text(
+            'Page ${ctx.pageNumber} of ${ctx.pagesCount}',
+            style: pw.TextStyle(fontSize: 8, color: PdfColors.grey500),
+          ),
+        ],
+      ),
+    );
+  }
+
+  pw.Widget _pdfClaimBanner(Map<String, dynamic> claim) {
+    return pw.Container(
+      padding: const pw.EdgeInsets.all(14),
+      decoration: pw.BoxDecoration(
+        color: PdfColors.green50,
+        borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
+        border: pw.Border.all(color: PdfColors.green700, width: 1),
+      ),
+      child: pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        children: [
+          pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Text(
+                claim['claimId'] as String,
+                style: pw.TextStyle(
+                  fontSize: 18,
+                  fontWeight: pw.FontWeight.bold,
+                  color: PdfColors.green800,
+                ),
+              ),
+              pw.SizedBox(height: 3),
+              pw.Text(
+                'Generated: ${claim['createdAt']}',
+                style: pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
+              ),
+            ],
+          ),
+          pw.Container(
+            padding: const pw.EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: pw.BoxDecoration(
+              color: PdfColors.green700,
+              borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+            ),
+            child: pw.Text(
+              'READY FOR SUBMISSION',
+              style: pw.TextStyle(
+                fontSize: 9,
+                fontWeight: pw.FontWeight.bold,
+                color: PdfColors.white,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  pw.Widget _pdfSection(String title) {
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Text(
+          title,
+          style: pw.TextStyle(
+            fontSize: 10,
+            fontWeight: pw.FontWeight.bold,
+            color: PdfColors.green800,
+            letterSpacing: 0.8,
+          ),
+        ),
+        pw.SizedBox(height: 6),
+      ],
+    );
+  }
+
+  pw.Widget _pdfTable(List<List<String>> rows) {
+    return pw.Table(
+      border: pw.TableBorder.all(color: PdfColors.grey200, width: 0.5),
+      columnWidths: const {
+        0: pw.FlexColumnWidth(2),
+        1: pw.FlexColumnWidth(3),
+      },
+      children: rows.map((row) {
+        return pw.TableRow(
+          children: [
+            pw.Container(
+              color: PdfColors.grey100,
+              padding: const pw.EdgeInsets.symmetric(
+                horizontal: 10,
+                vertical: 6,
+              ),
+              child: pw.Text(
+                row[0],
+                style: pw.TextStyle(
+                  fontSize: 9,
+                  fontWeight: pw.FontWeight.bold,
+                  color: PdfColors.grey700,
+                ),
+              ),
+            ),
+            pw.Container(
+              padding: const pw.EdgeInsets.symmetric(
+                horizontal: 10,
+                vertical: 6,
+              ),
+              child: pw.Text(
+                row[1],
+                style: const pw.TextStyle(fontSize: 9, color: PdfColors.black),
+              ),
+            ),
+          ],
+        );
+      }).toList(),
+    );
+  }
+
+  pw.Widget _pdfEvidenceChain() {
+    final steps = [
+      ('Satellite Detection', 'NDVI anomaly detected via Planet NICFI • 10 Mar 2024'),
+      ('GPS Truth Walk', 'Farmer navigated to hotspot using AgriSentinel • 12 Mar 2024'),
+      ('Ground Evidence Captured', 'AI scan: 67.4% damage • Confidence 89% • 12 Mar 2024'),
+      ('Claim Dossier Generated', 'CLM-2024-001 • AIMS Compliant PDF • 12 Mar 2024'),
+    ];
+
+    return pw.Column(
+      children: steps.asMap().entries.map((e) {
+        return pw.Container(
+          margin: const pw.EdgeInsets.only(bottom: 4),
+          padding: const pw.EdgeInsets.all(8),
+          decoration: pw.BoxDecoration(
+            color: PdfColors.green50,
+            borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+          ),
+          child: pw.Row(
+            children: [
+              pw.Container(
+                width: 20,
+                height: 20,
+                decoration: const pw.BoxDecoration(
+                  color: PdfColors.green700,
+                  shape: pw.BoxShape.circle,
+                ),
+                child: pw.Center(
+                  child: pw.Text(
+                    '${e.key + 1}',
+                    style: pw.TextStyle(
+                      fontSize: 9,
+                      fontWeight: pw.FontWeight.bold,
+                      color: PdfColors.white,
+                    ),
+                  ),
+                ),
+              ),
+              pw.SizedBox(width: 10),
+              pw.Expanded(
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text(
+                      e.value.$1,
+                      style: pw.TextStyle(
+                        fontSize: 9,
+                        fontWeight: pw.FontWeight.bold,
+                      ),
+                    ),
+                    pw.Text(
+                      e.value.$2,
+                      style: const pw.TextStyle(
+                        fontSize: 8,
+                        color: PdfColors.grey600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  pw.Widget _pdfComplianceBox() {
+    return pw.Container(
+      padding: const pw.EdgeInsets.all(12),
+      decoration: pw.BoxDecoration(
+        border: pw.Border.all(color: PdfColors.green800, width: 1),
+        borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6)),
+      ),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text(
+            'AIMS COMPLIANCE DECLARATION',
+            style: pw.TextStyle(
+              fontSize: 9,
+              fontWeight: pw.FontWeight.bold,
+              color: PdfColors.green800,
+            ),
+          ),
+          pw.SizedBox(height: 6),
+          pw.Text(
+            'This document has been generated by the AgriSentinel AI-Verified Crop Damage Assessment '
+            'System and complies with the Agricultural Insurance Management System (AIMS) standards. '
+            'The damage assessment has been cross-validated using (1) satellite NDVI analysis via '
+            'Planet NICFI imagery, (2) GPS-geotagged ground evidence capture, and (3) on-device '
+            'AI semantic segmentation analysis. This dossier is admissible as evidence for crop '
+            'insurance claims and government agricultural disaster recovery programmes.',
+            style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── UI ───────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -175,7 +494,9 @@ class _ClaimScreenState extends State<ClaimScreen>
               decoration: BoxDecoration(
                 color: AppColors.accent.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.accent.withValues(alpha: 0.3)),
+                border: Border.all(
+                  color: AppColors.accent.withValues(alpha: 0.3),
+                ),
               ),
               child: const Text(
                 'AIMS',
@@ -197,47 +518,28 @@ class _ClaimScreenState extends State<ClaimScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Claim ID banner
               _buildClaimBanner(claim),
               const SizedBox(height: 16),
-
-              // Before / After comparison
               _buildBeforeAfterSection(),
               const SizedBox(height: 16),
-
-              // Land parcel details
               if (parcel != null) ...[
-                _buildSectionHeader(
-                  Icons.landscape,
-                  'Land Parcel Details',
-                ),
+                _buildSectionHeader(Icons.landscape, 'Land Parcel Details'),
                 const SizedBox(height: 10),
                 _buildParcelCard(parcel),
                 const SizedBox(height: 16),
               ],
-
-              // AI Analysis
               _buildSectionHeader(Icons.biotech, 'AI Damage Analysis'),
               const SizedBox(height: 10),
               _buildAIAnalysisCard(analysis),
               const SizedBox(height: 16),
-
-              // Satellite data
-              _buildSectionHeader(
-                Icons.satellite_alt,
-                'Satellite Detection Data',
-              ),
+              _buildSectionHeader(Icons.satellite_alt, 'Satellite Detection Data'),
               const SizedBox(height: 10),
               _buildSatelliteCard(),
               const SizedBox(height: 16),
-
-              // Evidence chain
               _buildSectionHeader(Icons.link, 'Evidence Chain'),
               const SizedBox(height: 10),
               _buildEvidenceChain(),
               const SizedBox(height: 28),
-
-              // Generate button
               _buildGenerateButton(),
               const SizedBox(height: 24),
             ],
@@ -342,6 +644,7 @@ class _ClaimScreenState extends State<ClaimScreen>
                 icon: Icons.satellite_alt,
                 ndvi: '0.60',
                 ndviLabel: 'NDVI Healthy',
+                capturedPath: null,
               ),
             ),
             const SizedBox(width: 10),
@@ -353,6 +656,7 @@ class _ClaimScreenState extends State<ClaimScreen>
                 icon: Icons.camera_alt_outlined,
                 ndvi: '0.18',
                 ndviLabel: 'NDVI Damaged',
+                capturedPath: widget.capturedImagePath,
               ),
             ),
           ],
@@ -364,20 +668,13 @@ class _ClaimScreenState extends State<ClaimScreen>
   Widget _buildParcelCard(LandParcel parcel) {
     return _InfoCard(
       children: [
-        _DetailRow(
-          label: 'Parcel ID',
-          value: parcel.parcelId,
-          mono: true,
-        ),
+        _DetailRow(label: 'Parcel ID', value: parcel.parcelId, mono: true),
         _DetailRow(label: 'Owner', value: parcel.ownerName),
         _DetailRow(
           label: 'Registered Area',
           value: '${parcel.registeredAreaHa} ha',
         ),
-        _DetailRow(
-          label: 'Crop Type',
-          value: widget.hotspot.cropType,
-        ),
+        _DetailRow(label: 'Crop Type', value: widget.hotspot.cropType),
         _DetailRow(label: 'Season', value: parcel.cropSeason),
       ],
     );
@@ -385,8 +682,8 @@ class _ClaimScreenState extends State<ClaimScreen>
 
   Widget _buildAIAnalysisCard(Map<String, dynamic> analysis) {
     final damage = analysis['damagePercentage'] as double;
-    final confidence = ((analysis['confidenceScore'] as double) * 100)
-        .toStringAsFixed(0);
+    final confidence =
+        ((analysis['confidenceScore'] as double) * 100).toStringAsFixed(0);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -534,78 +831,75 @@ class _ClaimScreenState extends State<ClaimScreen>
         children: items.asMap().entries.map((entry) {
           final i = entry.key;
           final item = entry.value;
-          return Column(
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
+              Column(
                 children: [
-                  Column(
-                    children: [
-                      Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: item.isComplete
-                              ? AppColors.accent.withValues(alpha: 0.15)
-                              : AppColors.border,
-                          border: Border.all(
-                            color: item.isComplete
-                                ? AppColors.accent
-                                : AppColors.border,
-                            width: 1.5,
-                          ),
-                        ),
-                        child: Icon(
-                          item.isComplete ? Icons.check : item.icon,
-                          size: 15,
-                          color: item.isComplete
-                              ? AppColors.accent
-                              : AppColors.textMuted,
-                        ),
-                      ),
-                      if (i < items.length - 1)
-                        Container(
-                          width: 1.5,
-                          height: 24,
-                          color: item.isComplete
-                              ? AppColors.accent.withValues(alpha: 0.4)
-                              : AppColors.border,
-                          margin: const EdgeInsets.symmetric(vertical: 4),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Padding(
-                      padding: EdgeInsets.only(
-                        bottom: i < items.length - 1 ? 32 : 0,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item.title,
-                            style: TextStyle(
-                              color: item.isComplete
-                                  ? AppColors.textPrimary
-                                  : AppColors.textMuted,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            item.subtitle,
-                            style: const TextStyle(
-                              color: AppColors.textMuted,
-                              fontSize: 11,
-                            ),
-                          ),
-                        ],
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: item.isComplete
+                          ? AppColors.accent.withValues(alpha: 0.15)
+                          : AppColors.border,
+                      border: Border.all(
+                        color: item.isComplete
+                            ? AppColors.accent
+                            : AppColors.border,
+                        width: 1.5,
                       ),
                     ),
+                    child: Icon(
+                      item.isComplete ? Icons.check : item.icon,
+                      size: 15,
+                      color: item.isComplete
+                          ? AppColors.accent
+                          : AppColors.textMuted,
+                    ),
                   ),
+                  if (i < items.length - 1)
+                    Container(
+                      width: 1.5,
+                      height: 28,
+                      color: item.isComplete
+                          ? AppColors.accent.withValues(alpha: 0.4)
+                          : AppColors.border,
+                      margin: const EdgeInsets.symmetric(vertical: 4),
+                    ),
                 ],
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    bottom: i < items.length - 1 ? 36 : 0,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.title,
+                        style: TextStyle(
+                          color: item.isComplete
+                              ? AppColors.textPrimary
+                              : AppColors.textMuted,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        item.subtitle,
+                        style: const TextStyle(
+                          color: AppColors.textMuted,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ],
           );
@@ -632,7 +926,7 @@ class _ClaimScreenState extends State<ClaimScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Report Generated',
+                    'Report Shared / Downloaded',
                     style: TextStyle(
                       color: AppColors.accent,
                       fontWeight: FontWeight.w700,
@@ -640,19 +934,16 @@ class _ClaimScreenState extends State<ClaimScreen>
                     ),
                   ),
                   Text(
-                    'CLM-2024-001_dossier.pdf  •  842 KB',
-                    style: TextStyle(
-                      color: AppColors.textMuted,
-                      fontSize: 11,
-                    ),
+                    'CLM-2024-001_AgriSentinel_Dossier.pdf',
+                    style: TextStyle(color: AppColors.textMuted, fontSize: 11),
                   ),
                 ],
               ),
             ),
             OutlinedButton.icon(
-              onPressed: () {},
-              icon: const Icon(Icons.download, size: 14),
-              label: const Text('Download'),
+              onPressed: _generateReport,
+              icon: const Icon(Icons.open_in_new, size: 14),
+              label: const Text('Reopen'),
             ),
           ],
         ),
@@ -674,7 +965,7 @@ class _ClaimScreenState extends State<ClaimScreen>
               )
             : const Icon(Icons.picture_as_pdf, size: 18),
         label: Text(
-          _isGenerating ? 'Generating AIMS Report...' : 'Generate Report PDF',
+          _isGenerating ? 'Generating AIMS Report...' : 'Generate & Download Report PDF',
         ),
         style: ElevatedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 18),
@@ -711,6 +1002,7 @@ class _ImageCard extends StatelessWidget {
   final IconData icon;
   final String ndvi;
   final String ndviLabel;
+  final String? capturedPath;
 
   const _ImageCard({
     required this.label,
@@ -719,6 +1011,7 @@ class _ImageCard extends StatelessWidget {
     required this.icon,
     required this.ndvi,
     required this.ndviLabel,
+    required this.capturedPath,
   });
 
   @override
@@ -731,52 +1024,43 @@ class _ImageCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Container(
-            height: 110,
-            decoration: BoxDecoration(
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(13),
-              ),
-              gradient: LinearGradient(
-                colors: [
-                  color.withValues(alpha: 0.08),
-                  Colors.black.withValues(alpha: 0.4),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-            child: Stack(
-              children: [
-                Center(
-                  child: Icon(icon, size: 36, color: color.withValues(alpha: 0.4)),
-                ),
-                Positioned(
-                  top: 8,
-                  left: 8,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 3,
+          // Image area
+          ClipRRect(
+            borderRadius:
+                const BorderRadius.vertical(top: Radius.circular(13)),
+            child: SizedBox(
+              height: 110,
+              child: (capturedPath != null && !kIsWeb)
+                  ? Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Image.file(
+                          File(capturedPath!),
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, err, stack) =>
+                              _placeholder(color, icon),
+                        ),
+                        Positioned(
+                          top: 8,
+                          left: 8,
+                          child: _labelChip(color),
+                        ),
+                      ],
+                    )
+                  : Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        _placeholder(color, icon),
+                        Positioned(
+                          top: 8,
+                          left: 8,
+                          child: _labelChip(color),
+                        ),
+                      ],
                     ),
-                    decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.85),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      label,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 9,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.8,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
             ),
           ),
+          // Caption
           Padding(
             padding: const EdgeInsets.all(10),
             child: Column(
@@ -821,11 +1105,47 @@ class _ImageCard extends StatelessWidget {
       ),
     );
   }
+
+  Widget _placeholder(Color color, IconData icon) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            color.withValues(alpha: 0.08),
+            Colors.black.withValues(alpha: 0.4),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Center(
+        child: Icon(icon, size: 36, color: color.withValues(alpha: 0.4)),
+      ),
+    );
+  }
+
+  Widget _labelChip(Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.85),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 9,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 0.8,
+        ),
+      ),
+    );
+  }
 }
 
 class _InfoCard extends StatelessWidget {
   final List<Widget> children;
-
   const _InfoCard({required this.children});
 
   @override
@@ -875,10 +1195,7 @@ class _DetailRow extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(
-            color: AppColors.textMuted,
-            fontSize: 12,
-          ),
+          style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
         ),
         Text(
           value,
