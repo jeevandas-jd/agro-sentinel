@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'app/app_router.dart';
+import 'app/session_state.dart';
 import 'theme/app_theme.dart';
-import 'screens/splash_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,11 +23,12 @@ class AgriSentinelApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final sessionState = SessionState();
     return MaterialApp(
       title: 'AgriSentinel',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.theme,
-      home: const SplashScreen(),
+      home: AppRouter(sessionState: sessionState),
     );
   }
 }

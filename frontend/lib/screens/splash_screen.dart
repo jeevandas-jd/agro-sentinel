@@ -3,7 +3,9 @@ import '../theme/app_theme.dart';
 import 'dashboard_screen.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+  final bool standaloneMode;
+
+  const SplashScreen({super.key, this.standaloneMode = false});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -34,20 +36,23 @@ class _SplashScreenState extends State<SplashScreen>
     _scaleAnimation = Tween<double>(begin: 0.3, end: 1.0).animate(
       CurvedAnimation(parent: _logoController, curve: Curves.elasticOut),
     );
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _logoController, curve: Curves.easeIn),
-    );
-    _ringAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _logoController, curve: Curves.easeOut),
-    );
-    _textFade = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _textController, curve: Curves.easeIn),
-    );
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _logoController, curve: Curves.easeIn));
+    _ringAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _logoController, curve: Curves.easeOut));
+    _textFade = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _textController, curve: Curves.easeIn));
 
     _logoController.forward().then((_) {
       _textController.forward();
       Future.delayed(const Duration(milliseconds: 1500), () {
-        if (mounted) {
+        if (mounted && !widget.standaloneMode) {
           Navigator.of(context).pushReplacement(
             PageRouteBuilder(
               pageBuilder: (context, animation, _) => const DashboardScreen(),
@@ -97,8 +102,8 @@ class _SplashScreenState extends State<SplashScreen>
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: AppColors.accent.withValues(alpha: 
-                                  1.0 - _ringAnimation.value * 0.5,
+                                color: AppColors.accent.withValues(
+                                  alpha: 1.0 - _ringAnimation.value * 0.5,
                                 ),
                                 width: 2,
                               ),
@@ -112,10 +117,7 @@ class _SplashScreenState extends State<SplashScreen>
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             gradient: const RadialGradient(
-                              colors: [
-                                Color(0xFF2E7D32),
-                                Color(0xFF1B5E20),
-                              ],
+                              colors: [Color(0xFF2E7D32), Color(0xFF1B5E20)],
                             ),
                             boxShadow: [
                               BoxShadow(
