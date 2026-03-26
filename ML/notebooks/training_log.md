@@ -1,8 +1,8 @@
 # Training Log
 
-## Run 001 — 2026-03-22
-- Dataset: CDC (23,000 images)
+## Run 001 — 2026-03-26
+- Dataset: CDC (~23k images)
 - Architecture: LightCDC (ShuffleNetV2)
-- Epochs: XX / 50
-- Best val accuracy: XX%
-- Notes: baseline run, no augmentation
+- Epochs: 21 (early stopping)
+- Best val accuracy: 90.40%
+- Notes: stable convergence, no overfitting
