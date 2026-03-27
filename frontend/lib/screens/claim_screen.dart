@@ -14,11 +14,7 @@ class ClaimScreen extends StatefulWidget {
   final Hotspot hotspot;
   final String? capturedImagePath;
 
-  const ClaimScreen({
-    super.key,
-    required this.hotspot,
-    this.capturedImagePath,
-  });
+  const ClaimScreen({super.key, required this.hotspot, this.capturedImagePath});
 
   @override
   State<ClaimScreen> createState() => _ClaimScreenState();
@@ -38,9 +34,10 @@ class _ClaimScreenState extends State<ClaimScreen>
       vsync: this,
       duration: const Duration(milliseconds: 700),
     )..forward();
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _fadeController, curve: Curves.easeOut),
-    );
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _fadeController, curve: Curves.easeOut));
   }
 
   @override
@@ -136,9 +133,18 @@ class _ClaimScreenState extends State<ClaimScreen>
           _pdfTable([
             ['Evidence ID', analysis['evidenceId'] as String],
             ['Damage Percentage', '${analysis['damagePercentage']}%'],
-            ['Healthy Pixel Ratio', '${((analysis['healthyPixelRatio'] as double) * 100).toStringAsFixed(1)}%'],
-            ['Damaged Pixel Ratio', '${((analysis['damagedPixelRatio'] as double) * 100).toStringAsFixed(1)}%'],
-            ['AI Confidence Score', '${((analysis['confidenceScore'] as double) * 100).toStringAsFixed(0)}%'],
+            [
+              'Healthy Pixel Ratio',
+              '${((analysis['healthyPixelRatio'] as double) * 100).toStringAsFixed(1)}%',
+            ],
+            [
+              'Damaged Pixel Ratio',
+              '${((analysis['damagedPixelRatio'] as double) * 100).toStringAsFixed(1)}%',
+            ],
+            [
+              'AI Confidence Score',
+              '${((analysis['confidenceScore'] as double) * 100).toStringAsFixed(0)}%',
+            ],
             ['Damage Classification', analysis['damageClass'] as String],
           ]),
           if (capturedImg != null) ...[
@@ -157,10 +163,7 @@ class _ClaimScreenState extends State<ClaimScreen>
               child: pw.Text(
                 'Captured: ${widget.hotspot.latitude.toStringAsFixed(4)}, '
                 '${widget.hotspot.longitude.toStringAsFixed(4)}  •  12 Mar 2024',
-                style: pw.TextStyle(
-                  fontSize: 9,
-                  color: PdfColors.grey600,
-                ),
+                style: pw.TextStyle(fontSize: 9, color: PdfColors.grey600),
               ),
             ),
           ],
@@ -320,10 +323,7 @@ class _ClaimScreenState extends State<ClaimScreen>
   pw.Widget _pdfTable(List<List<String>> rows) {
     return pw.Table(
       border: pw.TableBorder.all(color: PdfColors.grey200, width: 0.5),
-      columnWidths: const {
-        0: pw.FlexColumnWidth(2),
-        1: pw.FlexColumnWidth(3),
-      },
+      columnWidths: const {0: pw.FlexColumnWidth(2), 1: pw.FlexColumnWidth(3)},
       children: rows.map((row) {
         return pw.TableRow(
           children: [
@@ -360,10 +360,22 @@ class _ClaimScreenState extends State<ClaimScreen>
 
   pw.Widget _pdfEvidenceChain() {
     final steps = [
-      ('Satellite Detection', 'NDVI anomaly detected via Planet NICFI • 10 Mar 2024'),
-      ('GPS Truth Walk', 'Farmer navigated to hotspot using AgriSentinel • 12 Mar 2024'),
-      ('Ground Evidence Captured', 'AI scan: 67.4% damage • Confidence 89% • 12 Mar 2024'),
-      ('Claim Dossier Generated', 'CLM-2024-001 • AIMS Compliant PDF • 12 Mar 2024'),
+      (
+        'Satellite Detection',
+        'NDVI anomaly detected via Planet NICFI • 10 Mar 2024',
+      ),
+      (
+        'GPS Truth Walk',
+        'Farmer navigated to hotspot using AgriSentinel • 12 Mar 2024',
+      ),
+      (
+        'Ground Evidence Captured',
+        'AI scan: 67.4% damage • Confidence 89% • 12 Mar 2024',
+      ),
+      (
+        'Claim Dossier Generated',
+        'CLM-2024-001 • AIMS Compliant PDF • 12 Mar 2024',
+      ),
     ];
 
     return pw.Column(
@@ -532,7 +544,10 @@ class _ClaimScreenState extends State<ClaimScreen>
               const SizedBox(height: 10),
               _buildAIAnalysisCard(analysis),
               const SizedBox(height: 16),
-              _buildSectionHeader(Icons.satellite_alt, 'Satellite Detection Data'),
+              _buildSectionHeader(
+                Icons.satellite_alt,
+                'Satellite Detection Data',
+              ),
               const SizedBox(height: 10),
               _buildSatelliteCard(),
               const SizedBox(height: 16),
@@ -554,10 +569,7 @@ class _ClaimScreenState extends State<ClaimScreen>
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            AppColors.primary.withValues(alpha: 0.3),
-            AppColors.card,
-          ],
+          colors: [AppColors.primary.withValues(alpha: 0.3), AppColors.card],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -611,7 +623,9 @@ class _ClaimScreenState extends State<ClaimScreen>
             decoration: BoxDecoration(
               color: AppColors.accent.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.accent.withValues(alpha: 0.4)),
+              border: Border.all(
+                color: AppColors.accent.withValues(alpha: 0.4),
+              ),
             ),
             child: const Text(
               'READY',
@@ -682,8 +696,8 @@ class _ClaimScreenState extends State<ClaimScreen>
 
   Widget _buildAIAnalysisCard(Map<String, dynamic> analysis) {
     final damage = analysis['damagePercentage'] as double;
-    final confidence =
-        ((analysis['confidenceScore'] as double) * 100).toStringAsFixed(0);
+    final confidence = ((analysis['confidenceScore'] as double) * 100)
+        .toStringAsFixed(0);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -965,7 +979,9 @@ class _ClaimScreenState extends State<ClaimScreen>
               )
             : const Icon(Icons.picture_as_pdf, size: 18),
         label: Text(
-          _isGenerating ? 'Generating AIMS Report...' : 'Generate & Download Report PDF',
+          _isGenerating
+              ? 'Generating AIMS Report...'
+              : 'Generate & Download Report PDF',
         ),
         style: ElevatedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 18),
@@ -1026,8 +1042,7 @@ class _ImageCard extends StatelessWidget {
         children: [
           // Image area
           ClipRRect(
-            borderRadius:
-                const BorderRadius.vertical(top: Radius.circular(13)),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(13)),
             child: SizedBox(
               height: 110,
               child: (capturedPath != null && !kIsWeb)
@@ -1040,22 +1055,14 @@ class _ImageCard extends StatelessWidget {
                           errorBuilder: (context, err, stack) =>
                               _placeholder(color, icon),
                         ),
-                        Positioned(
-                          top: 8,
-                          left: 8,
-                          child: _labelChip(color),
-                        ),
+                        Positioned(top: 8, left: 8, child: _labelChip(color)),
                       ],
                     )
                   : Stack(
                       fit: StackFit.expand,
                       children: [
                         _placeholder(color, icon),
-                        Positioned(
-                          top: 8,
-                          left: 8,
-                          child: _labelChip(color),
-                        ),
+                        Positioned(top: 8, left: 8, child: _labelChip(color)),
                       ],
                     ),
             ),

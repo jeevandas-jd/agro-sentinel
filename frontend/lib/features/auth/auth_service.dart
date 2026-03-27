@@ -52,6 +52,66 @@ class AuthService {
     );
   }
 
+  Future<DemoUser> updateProfile({
+    required String email,
+    required String name,
+    required String region,
+  }) async {
+    final users = await _loadUsers();
+    final normalizedEmail = email.trim().toLowerCase();
+    final existing = users[normalizedEmail];
+    if (existing == null) {
+      throw const AuthException('Account not found for profile update.');
+    }
+
+    users[normalizedEmail] = _StoredUser(
+      name: name.trim(),
+      email: normalizedEmail,
+      password: existing.password,
+      region: region.trim(),
+    );
+    await _saveUsers(users);
+
+    return DemoUser(
+      name: name.trim(),
+      email: normalizedEmail,
+      region: region.trim(),
+    );
+  }
+
+  Future<void> changePassword({
+    required String email,
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final users = await _loadUsers();
+    final normalizedEmail = email.trim().toLowerCase();
+    final existing = users[normalizedEmail];
+    if (existing == null) {
+      throw const AuthException('Account not found.');
+    }
+    if (existing.password != currentPassword) {
+      throw const AuthException('Current password is incorrect.');
+    }
+    users[normalizedEmail] = _StoredUser(
+      name: existing.name,
+      email: existing.email,
+      password: newPassword,
+      region: existing.region,
+    );
+    await _saveUsers(users);
+  }
+
+  Future<void> deleteAccount(String email) async {
+    final users = await _loadUsers();
+    final normalizedEmail = email.trim().toLowerCase();
+    if (!users.containsKey(normalizedEmail)) {
+      throw const AuthException('Account not found.');
+    }
+    users.remove(normalizedEmail);
+    await _saveUsers(users);
+  }
+
   Future<Map<String, _StoredUser>> _loadUsers() async {
     final prefs = await SharedPreferences.getInstance();
     final serialized = prefs.getStringList(_usersStorageKey) ?? <String>[];

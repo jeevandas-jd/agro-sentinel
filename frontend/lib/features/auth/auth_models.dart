@@ -9,6 +9,14 @@ class DemoUser {
     required this.region,
   });
 
+  DemoUser copyWith({String? name, String? email, String? region}) {
+    return DemoUser(
+      name: name ?? this.name,
+      email: email ?? this.email,
+      region: region ?? this.region,
+    );
+  }
+
   String get initials {
     final parts = name.trim().split(RegExp(r'\s+'));
     if (parts.length >= 2) {

@@ -39,9 +39,7 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   void _openHotspot(Hotspot hotspot) {
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => NavigationScreen(hotspot: hotspot),
-      ),
+      MaterialPageRoute(builder: (_) => NavigationScreen(hotspot: hotspot)),
     );
   }
 

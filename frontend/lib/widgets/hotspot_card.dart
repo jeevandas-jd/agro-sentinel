@@ -151,7 +151,9 @@ class HotspotCard extends StatelessWidget {
                               color: AppColors.alertHigh.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: AppColors.alertHigh.withValues(alpha: 0.2),
+                                color: AppColors.alertHigh.withValues(
+                                  alpha: 0.2,
+                                ),
                               ),
                             ),
                             child: Column(
@@ -199,7 +201,9 @@ class HotspotCard extends StatelessWidget {
                       icon: const Icon(Icons.explore, size: 16),
                       label: const Text('Begin Truth Walk'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: hotspot.severityColor.withValues(alpha: 0.15),
+                        backgroundColor: hotspot.severityColor.withValues(
+                          alpha: 0.15,
+                        ),
                         foregroundColor: hotspot.severityColor,
                         side: BorderSide(
                           color: hotspot.severityColor.withValues(alpha: 0.5),

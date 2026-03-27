@@ -43,6 +43,10 @@ class _AppRouterState extends State<AppRouter> {
     await widget.sessionState.setSession(user);
   }
 
+  Future<void> _onUserUpdated(DemoUser user) async {
+    await widget.sessionState.updateCurrentUser(user);
+  }
+
   Future<void> _onLogout() async {
     await widget.sessionState.clearSession();
     if (!mounted) {
@@ -65,6 +69,8 @@ class _AppRouterState extends State<AppRouter> {
         if (widget.sessionState.isAuthenticated) {
           return AppShell(
             user: widget.sessionState.currentUser!,
+            authService: _authService,
+            onUserUpdated: _onUserUpdated,
             onLogout: _onLogout,
           );
         }

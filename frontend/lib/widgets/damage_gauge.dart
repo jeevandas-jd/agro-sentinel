@@ -95,11 +95,7 @@ class _DamageGaugePainter extends CustomPainter {
       ..shader = SweepGradient(
         startAngle: startAngle,
         endAngle: startAngle + sweepAngle,
-        colors: [
-          AppColors.accent,
-          AppColors.alertMedium,
-          AppColors.alertHigh,
-        ],
+        colors: [AppColors.accent, AppColors.alertMedium, AppColors.alertHigh],
         stops: const [0.0, 0.5, 1.0],
       ).createShader(Rect.fromCircle(center: center, radius: radius))
       ..style = PaintingStyle.stroke

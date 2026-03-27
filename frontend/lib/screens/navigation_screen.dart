@@ -171,7 +171,9 @@ class _NavigationScreenState extends State<NavigationScreen>
                           )
                         : const Icon(Icons.directions_walk, size: 16),
                     label: Text(
-                      _isSimulating ? 'Walking to hotspot...' : 'Simulate Approach  (Demo)',
+                      _isSimulating
+                          ? 'Walking to hotspot...'
+                          : 'Simulate Approach  (Demo)',
                     ),
                   ),
                 ),
@@ -240,8 +242,8 @@ class _NavigationScreenState extends State<NavigationScreen>
                 height: 40,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: widget.hotspot.severityColor.withValues(alpha: 
-                    0.15 * _pulseAnimation.value,
+                  color: widget.hotspot.severityColor.withValues(
+                    alpha: 0.15 * _pulseAnimation.value,
                   ),
                   border: Border.all(
                     color: widget.hotspot.severityColor.withValues(alpha: 0.6),
@@ -406,11 +408,7 @@ class _NavigationScreenState extends State<NavigationScreen>
                 lng: '76.6502',
               ),
               const SizedBox(width: 12),
-              Container(
-                width: 1,
-                height: 40,
-                color: AppColors.border,
-              ),
+              Container(width: 1, height: 40, color: AppColors.border),
               const SizedBox(width: 12),
               _CoordBlock(
                 label: 'TARGET',
@@ -482,7 +480,11 @@ class _NavigationScreenState extends State<NavigationScreen>
                 const SizedBox(width: 3),
                 const Text(
                   'UNLOCK AT 10 m',
-                  style: TextStyle(color: AppColors.accent, fontSize: 9, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    color: AppColors.accent,
+                    fontSize: 9,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ],
             ),

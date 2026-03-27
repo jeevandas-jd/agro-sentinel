@@ -36,6 +36,10 @@ class SessionState extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> updateCurrentUser(DemoUser user) async {
+    await setSession(user);
+  }
+
   Future<void> clearSession() async {
     _currentUser = null;
     final prefs = await SharedPreferences.getInstance();

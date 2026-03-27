@@ -51,9 +51,10 @@ class _CameraScreenState extends State<CameraScreen>
       vsync: this,
       duration: const Duration(milliseconds: 1800),
     );
-    _scanLine = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _scanController, curve: Curves.linear),
-    );
+    _scanLine = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _scanController, curve: Curves.linear));
 
     _resultController = AnimationController(
       vsync: this,
@@ -69,10 +70,10 @@ class _CameraScreenState extends State<CameraScreen>
     );
     _damageAnimation =
         Tween<double>(begin: 0.0, end: _targetDamage).animate(
-      CurvedAnimation(parent: _damageController, curve: Curves.easeOut),
-    )..addListener(() {
-            setState(() => _currentDamage = _damageAnimation.value);
-          });
+          CurvedAnimation(parent: _damageController, curve: Curves.easeOut),
+        )..addListener(() {
+          setState(() => _currentDamage = _damageAnimation.value);
+        });
   }
 
   Future<void> _initCamera() async {
@@ -159,10 +160,7 @@ class _CameraScreenState extends State<CameraScreen>
           // 2. Captured photo freeze-frame (native only, during analysis)
           if (_capturedImagePath != null && !kIsWeb)
             Positioned.fill(
-              child: Image.file(
-                File(_capturedImagePath!),
-                fit: BoxFit.cover,
-              ),
+              child: Image.file(File(_capturedImagePath!), fit: BoxFit.cover),
             ),
 
           // 3. Scan animation (full-screen sweep)
@@ -193,9 +191,7 @@ class _CameraScreenState extends State<CameraScreen>
               opacity: _resultFade,
               child: Align(
                 alignment: const Alignment(0, -0.72),
-                child: _DamagedZoneBadge(
-                  percentage: _currentDamage,
-                ),
+                child: _DamagedZoneBadge(percentage: _currentDamage),
               ),
             ),
 
@@ -246,8 +242,11 @@ class _CameraScreenState extends State<CameraScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.videocam_off,
-                color: AppColors.textMuted, size: 48),
+            const Icon(
+              Icons.videocam_off,
+              color: AppColors.textMuted,
+              size: 48,
+            ),
             const SizedBox(height: 12),
             Text(
               kIsWeb
@@ -324,25 +323,16 @@ class _CameraScreenState extends State<CameraScreen>
             children: [
               _ResultChip(
                 label: 'HEALTHY',
-                value:
-                    '${(100 - _currentDamage).toStringAsFixed(1)}%',
+                value: '${(100 - _currentDamage).toStringAsFixed(1)}%',
                 color: AppColors.accent,
               ),
-              Container(
-                width: 1,
-                height: 28,
-                color: AppColors.border,
-              ),
+              Container(width: 1, height: 28, color: AppColors.border),
               _ResultChip(
                 label: 'DAMAGED',
                 value: '${_currentDamage.toStringAsFixed(1)}%',
                 color: AppColors.alertHigh,
               ),
-              Container(
-                width: 1,
-                height: 28,
-                color: AppColors.border,
-              ),
+              Container(width: 1, height: 28, color: AppColors.border),
               _ResultChip(
                 label: 'CONFIDENCE',
                 value: '89%',
@@ -363,9 +353,7 @@ class _CameraScreenState extends State<CameraScreen>
       decoration: BoxDecoration(
         color: Colors.black.withValues(alpha: 0.75),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.accent.withValues(alpha: 0.25),
-        ),
+        border: Border.all(color: AppColors.accent.withValues(alpha: 0.25)),
       ),
       child: Row(
         children: [
@@ -413,11 +401,13 @@ class _CameraScreenState extends State<CameraScreen>
               decoration: BoxDecoration(
                 color: Colors.black.withValues(alpha: 0.55),
                 shape: BoxShape.circle,
-                border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.2)),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
               ),
-              child: const Icon(Icons.arrow_back_ios_new,
-                  color: Colors.white, size: 16),
+              child: const Icon(
+                Icons.arrow_back_ios_new,
+                color: Colors.white,
+                size: 16,
+              ),
             ),
           ),
           const Spacer(),
@@ -478,7 +468,9 @@ class _CameraScreenState extends State<CameraScreen>
               width: 12,
               height: 12,
               child: CircularProgressIndicator(
-                  strokeWidth: 1.5, color: AppColors.accent),
+                strokeWidth: 1.5,
+                color: AppColors.accent,
+              ),
             ),
             const SizedBox(width: 6),
           ] else if (icon != null) ...[
@@ -523,47 +515,48 @@ class _CameraScreenState extends State<CameraScreen>
                 ),
               )
             : _isCapturing
-                ? Container(
-                    padding: const EdgeInsets.symmetric(vertical: 18),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.6),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: AppColors.border),
+            ? Container(
+                padding: const EdgeInsets.symmetric(vertical: 18),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.6),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.accent,
+                      ),
                     ),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: AppColors.accent,
-                          ),
-                        ),
-                        SizedBox(width: 10),
-                        Text(
-                          'Analysing crop damage...',
-                          style: TextStyle(
-                            color: AppColors.textMuted,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
+                    SizedBox(width: 10),
+                    Text(
+                      'Analysing crop damage...',
+                      style: TextStyle(
+                        color: AppColors.textMuted,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  )
-                : ElevatedButton.icon(
-                    onPressed:
-                        (_cameraReady || _cameraError) ? _captureAndAnalyse : null,
-                    icon: const Icon(Icons.camera_alt, size: 20),
-                    label: const Text('Capture & Analyse'),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 18),
-                      backgroundColor: AppColors.alertHigh,
-                      foregroundColor: Colors.white,
-                    ),
-                  ),
+                  ],
+                ),
+              )
+            : ElevatedButton.icon(
+                onPressed: (_cameraReady || _cameraError)
+                    ? _captureAndAnalyse
+                    : null,
+                icon: const Icon(Icons.camera_alt, size: 20),
+                label: const Text('Capture & Analyse'),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 18),
+                  backgroundColor: AppColors.alertHigh,
+                  foregroundColor: Colors.white,
+                ),
+              ),
       ),
     );
   }
@@ -609,8 +602,7 @@ class _ViewfinderPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final color =
-        analysisComplete ? AppColors.alertHigh : AppColors.accent;
+    final color = analysisComplete ? AppColors.alertHigh : AppColors.accent;
     final stroke = Paint()
       ..color = color
       ..strokeWidth = 2.5
@@ -634,10 +626,16 @@ class _ViewfinderPainter extends CustomPainter {
     final faint = Paint()
       ..color = color.withValues(alpha: 0.45)
       ..strokeWidth = 1;
-    canvas.drawLine(Offset(w / 2 - 18, h / 2),
-        Offset(w / 2 + 18, h / 2), faint);
-    canvas.drawLine(Offset(w / 2, h / 2 - 18),
-        Offset(w / 2, h / 2 + 18), faint);
+    canvas.drawLine(
+      Offset(w / 2 - 18, h / 2),
+      Offset(w / 2 + 18, h / 2),
+      faint,
+    );
+    canvas.drawLine(
+      Offset(w / 2, h / 2 - 18),
+      Offset(w / 2, h / 2 + 18),
+      faint,
+    );
     canvas.drawCircle(
       Offset(w / 2, h / 2),
       5,
@@ -734,10 +732,7 @@ class _PixelRatioBar extends StatelessWidget {
             ),
             Text(
               'U-Net AI Model',
-              style: const TextStyle(
-                color: AppColors.textMuted,
-                fontSize: 9,
-              ),
+              style: const TextStyle(color: AppColors.textMuted, fontSize: 9),
             ),
           ],
         ),

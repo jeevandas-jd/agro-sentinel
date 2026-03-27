@@ -83,10 +83,7 @@ class _CompassPainter extends CustomPainter {
     // Background
     final bgPaint = Paint()
       ..shader = RadialGradient(
-        colors: [
-          const Color(0xFF152015),
-          const Color(0xFF0A120A),
-        ],
+        colors: [const Color(0xFF152015), const Color(0xFF0A120A)],
       ).createShader(Rect.fromCircle(center: center, radius: radius))
       ..style = PaintingStyle.fill;
     canvas.drawCircle(center, radius - 1, bgPaint);
