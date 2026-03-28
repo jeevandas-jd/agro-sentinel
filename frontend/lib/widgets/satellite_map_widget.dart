@@ -191,11 +191,7 @@ class _SatelliteMapPainter extends CustomPainter {
         ..strokeWidth = 1.5;
       final rect = fieldRects[i];
       for (double y = rect.top + 6; y < rect.bottom; y += 6) {
-        canvas.drawLine(
-          Offset(rect.left, y),
-          Offset(rect.right, y),
-          rowPaint,
-        );
+        canvas.drawLine(Offset(rect.left, y), Offset(rect.right, y), rowPaint);
       }
     }
 
@@ -237,11 +233,25 @@ class _SatelliteMapPainter extends CustomPainter {
 
     // HS-001 — high severity (red), position at ~60%, 42%
     final hs1Center = Offset(w * 0.61, h * 0.42);
-    _drawHotspot(canvas, hs1Center, AppColors.alertHigh, pulseValue, 'HS-001', 'HIGH');
+    _drawHotspot(
+      canvas,
+      hs1Center,
+      AppColors.alertHigh,
+      pulseValue,
+      'HS-001',
+      'HIGH',
+    );
 
     // HS-002 — medium severity (orange), position at ~73%, 26%
     final hs2Center = Offset(w * 0.73, h * 0.26);
-    _drawHotspot(canvas, hs2Center, AppColors.alertMedium, 1.0 - pulseValue * 0.3, 'HS-002', 'MED');
+    _drawHotspot(
+      canvas,
+      hs2Center,
+      AppColors.alertMedium,
+      1.0 - pulseValue * 0.3,
+      'HS-002',
+      'MED',
+    );
 
     // Farmer location (blue pulsing dot)
     final farmerPos = Offset(w * 0.30, h * 0.60);
