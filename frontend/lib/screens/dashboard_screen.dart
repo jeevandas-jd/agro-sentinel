@@ -15,9 +15,14 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late AnimationController _headerController;
+  late AnimationController _weatherController;
   late Animation<double> _headerFade;
+  late Animation<double> _weatherPulse;
+  final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
+  bool _searchFocused = false;
 
   @override
   void initState() {
@@ -26,14 +31,29 @@ class _DashboardScreenState extends State<DashboardScreen>
       vsync: this,
       duration: const Duration(milliseconds: 700),
     )..forward();
+    _weatherController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    )..repeat(reverse: true);
     _headerFade = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _headerController, curve: Curves.easeOut),
     );
+    _weatherPulse = Tween<double>(begin: 0.92, end: 1.08).animate(
+      CurvedAnimation(parent: _weatherController, curve: Curves.easeInOut),
+    );
+    _searchFocusNode.addListener(() {
+      if (_searchFocused != _searchFocusNode.hasFocus) {
+        setState(() => _searchFocused = _searchFocusNode.hasFocus);
+      }
+    });
   }
 
   @override
   void dispose() {
+    _searchController.dispose();
+    _searchFocusNode.dispose();
     _headerController.dispose();
+    _weatherController.dispose();
     super.dispose();
   }
 
@@ -56,6 +76,18 @@ class _DashboardScreenState extends State<DashboardScreen>
           child: CustomScrollView(
             slivers: [
               SliverToBoxAdapter(child: _buildHeader(farmer)),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                  child: _buildSearchBar(),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                  child: _buildWeatherCard(),
+                ),
+              ),
               SliverToBoxAdapter(child: _buildStatsRow(farmer)),
               SliverToBoxAdapter(
                 child: Padding(
@@ -256,6 +288,107 @@ class _DashboardScreenState extends State<DashboardScreen>
                   ),
                 ),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchBar() {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 220),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppRadii.l),
+        color: AppColors.surface.withValues(alpha: 0.75),
+        border: Border.all(
+          color: _searchFocused
+              ? AppColors.accentSoft.withValues(alpha: 0.9)
+              : AppColors.border,
+        ),
+        boxShadow: _searchFocused ? AppShadows.base : const [],
+      ),
+      child: TextField(
+        controller: _searchController,
+        focusNode: _searchFocusNode,
+        decoration: InputDecoration(
+          hintText: 'Search hotspots, claims, crops...',
+          prefixIcon: const Icon(Icons.search),
+          suffixIcon: const Icon(Icons.mic_none_rounded),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: AppSpacing.x4,
+            horizontal: AppSpacing.x2,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWeatherCard() {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      padding: const EdgeInsets.all(AppSpacing.x4),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppRadii.l),
+        gradient: LinearGradient(
+          colors: [
+            AppColors.oliveLight.withValues(alpha: 0.13),
+            AppColors.cardBright.withValues(alpha: 0.65),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        border: Border.all(color: AppColors.oliveLight.withValues(alpha: 0.20)),
+        boxShadow: AppShadows.base,
+      ),
+      child: Row(
+        children: [
+          AnimatedBuilder(
+            animation: _weatherPulse,
+            builder: (context, child) {
+              return Transform.scale(
+                scale: _weatherPulse.value,
+                child: Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: AppColors.highlightWarm.withValues(alpha: 0.22),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.wb_sunny_outlined,
+                    color: AppColors.highlightWarm,
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(width: AppSpacing.x3),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Field Conditions',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Cloudy intervals • Wind 5 m/s • Humidity 59%',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: AppSpacing.x2),
+          const Text(
+            '+16°C',
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.4,
             ),
           ),
         ],

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../theme/app_theme.dart';
+import '../../widgets/app_primary_button.dart';
+import '../../widgets/app_text_field.dart';
 import 'auth_models.dart';
 import 'auth_service.dart';
 import 'auth_validators.dart';
@@ -75,81 +77,99 @@ class _LoginPageState extends State<LoginPage> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(AppSpacing.x5),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 420),
-              child: Card(
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(AppRadii.xl),
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.cardBright.withValues(alpha: 0.95),
+                      AppColors.card.withValues(alpha: 0.95),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  border: Border.all(color: AppColors.border),
+                  boxShadow: AppShadows.raised,
+                ),
                 child: Padding(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(AppSpacing.x5),
                   child: Form(
                     key: _formKey,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const Icon(
-                          Icons.satellite_alt,
-                          color: AppColors.accent,
-                          size: 40,
+                        Container(
+                          width: 56,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: AppColors.accent.withValues(alpha: 0.18),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.satellite_alt,
+                            color: AppColors.oliveLight,
+                            size: 28,
+                          ),
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: AppSpacing.x3),
                         Text(
                           'Welcome back',
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.headlineMedium,
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: AppSpacing.x1),
                         Text(
                           'Sign in to continue',
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
-                        const SizedBox(height: 20),
-                        TextFormField(
+                        const SizedBox(height: AppSpacing.x5),
+                        AppTextField(
                           controller: _emailController,
+                          label: 'Email',
+                          icon: Icons.email_outlined,
+                          hintText: 'name@example.com',
                           keyboardType: TextInputType.emailAddress,
                           validator: AuthValidators.email,
-                          decoration: const InputDecoration(
-                            labelText: 'Email',
-                            prefixIcon: Icon(Icons.email_outlined),
-                          ),
                         ),
-                        const SizedBox(height: 12),
-                        TextFormField(
+                        const SizedBox(height: AppSpacing.x3),
+                        AppTextField(
                           controller: _passwordController,
+                          label: 'Password',
+                          icon: Icons.lock_outline,
                           obscureText: _obscurePassword,
                           validator: AuthValidators.password,
-                          decoration: InputDecoration(
-                            labelText: 'Password',
-                            prefixIcon: const Icon(Icons.lock_outline),
-                            suffixIcon: IconButton(
-                              onPressed: () {
-                                setState(() {
-                                  _obscurePassword = !_obscurePassword;
-                                });
-                              },
-                              icon: Icon(
-                                _obscurePassword
-                                    ? Icons.visibility_off
-                                    : Icons.visibility,
-                              ),
+                          suffixIcon: IconButton(
+                            onPressed: () {
+                              setState(() {
+                                _obscurePassword = !_obscurePassword;
+                              });
+                            },
+                            icon: Icon(
+                              _obscurePassword
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
                             ),
                           ),
                         ),
-                        const SizedBox(height: 18),
-                        ElevatedButton(
+                        const SizedBox(height: AppSpacing.x5),
+                        AppPrimaryButton(
                           onPressed: _isSubmitting ? null : _submit,
-                          child: Text(
-                            _isSubmitting ? 'Signing in...' : 'Login',
-                          ),
+                          isLoading: _isSubmitting,
+                          label: 'Login',
+                          icon: Icons.login,
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: AppSpacing.x3),
                         OutlinedButton(
                           onPressed: _isSubmitting
                               ? null
                               : widget.onRegisterTap,
                           child: const Text('Create account'),
                         ),
-                        const SizedBox(height: 14),
+                        const SizedBox(height: AppSpacing.x4),
                         Text(
                           'Demo account: demo@agrisentinel.app / demo123',
                           textAlign: TextAlign.center,

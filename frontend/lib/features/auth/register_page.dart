@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../theme/app_theme.dart';
+import '../../widgets/app_primary_button.dart';
+import '../../widgets/app_text_field.dart';
 import 'auth_models.dart';
 import 'auth_service.dart';
 import 'auth_validators.dart';
@@ -84,12 +86,25 @@ class _RegisterPageState extends State<RegisterPage> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(AppSpacing.x5),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 460),
-              child: Card(
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(AppRadii.xl),
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.cardBright.withValues(alpha: 0.95),
+                      AppColors.card.withValues(alpha: 0.95),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  border: Border.all(color: AppColors.border),
+                  boxShadow: AppShadows.raised,
+                ),
                 child: Padding(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(AppSpacing.x5),
                   child: Form(
                     key: _formKey,
                     child: Column(
@@ -100,102 +115,93 @@ class _RegisterPageState extends State<RegisterPage> {
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.headlineMedium,
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: AppSpacing.x2),
                         Text(
                           'Set up your AgriSentinel demo profile',
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
-                        const SizedBox(height: 20),
-                        TextFormField(
+                        const SizedBox(height: AppSpacing.x5),
+                        AppTextField(
                           controller: _nameController,
+                          label: 'Full name',
+                          icon: Icons.person_outline,
                           validator: (value) => AuthValidators.requiredField(
                             value,
                             label: 'Name',
                           ),
-                          decoration: const InputDecoration(
-                            labelText: 'Full name',
-                            prefixIcon: Icon(Icons.person_outline),
-                          ),
                         ),
-                        const SizedBox(height: 12),
-                        TextFormField(
+                        const SizedBox(height: AppSpacing.x3),
+                        AppTextField(
                           controller: _regionController,
+                          label: 'Region',
+                          icon: Icons.location_on_outlined,
                           validator: (value) => AuthValidators.requiredField(
                             value,
                             label: 'Region',
                           ),
-                          decoration: const InputDecoration(
-                            labelText: 'Region',
-                            prefixIcon: Icon(Icons.location_on_outlined),
-                          ),
                         ),
-                        const SizedBox(height: 12),
-                        TextFormField(
+                        const SizedBox(height: AppSpacing.x3),
+                        AppTextField(
                           controller: _emailController,
+                          label: 'Email',
+                          icon: Icons.email_outlined,
+                          hintText: 'name@example.com',
                           keyboardType: TextInputType.emailAddress,
                           validator: AuthValidators.email,
-                          decoration: const InputDecoration(
-                            labelText: 'Email',
-                            prefixIcon: Icon(Icons.email_outlined),
-                          ),
                         ),
-                        const SizedBox(height: 12),
-                        TextFormField(
+                        const SizedBox(height: AppSpacing.x3),
+                        AppTextField(
                           controller: _passwordController,
+                          label: 'Password',
+                          icon: Icons.lock_outline,
                           obscureText: _obscurePassword,
                           validator: AuthValidators.password,
-                          decoration: InputDecoration(
-                            labelText: 'Password',
-                            prefixIcon: const Icon(Icons.lock_outline),
-                            suffixIcon: IconButton(
-                              onPressed: () {
-                                setState(() {
-                                  _obscurePassword = !_obscurePassword;
-                                });
-                              },
-                              icon: Icon(
-                                _obscurePassword
-                                    ? Icons.visibility_off
-                                    : Icons.visibility,
-                              ),
+                          suffixIcon: IconButton(
+                            onPressed: () {
+                              setState(() {
+                                _obscurePassword = !_obscurePassword;
+                              });
+                            },
+                            icon: Icon(
+                              _obscurePassword
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
                             ),
                           ),
                         ),
-                        const SizedBox(height: 12),
-                        TextFormField(
+                        const SizedBox(height: AppSpacing.x3),
+                        AppTextField(
                           controller: _confirmPasswordController,
+                          label: 'Confirm password',
+                          icon: Icons.lock_reset_outlined,
                           obscureText: _obscureConfirmPassword,
                           validator: (value) => AuthValidators.confirmPassword(
                             value,
                             _passwordController.text,
                           ),
-                          decoration: InputDecoration(
-                            labelText: 'Confirm password',
-                            prefixIcon: const Icon(Icons.lock_reset_outlined),
-                            suffixIcon: IconButton(
-                              onPressed: () {
-                                setState(() {
-                                  _obscureConfirmPassword =
-                                      !_obscureConfirmPassword;
-                                });
-                              },
-                              icon: Icon(
-                                _obscureConfirmPassword
-                                    ? Icons.visibility_off
-                                    : Icons.visibility,
-                              ),
+                          suffixIcon: IconButton(
+                            onPressed: () {
+                              setState(() {
+                                _obscureConfirmPassword =
+                                    !_obscureConfirmPassword;
+                              });
+                            },
+                            icon: Icon(
+                              _obscureConfirmPassword
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
                             ),
                           ),
                         ),
-                        const SizedBox(height: 18),
-                        ElevatedButton(
+                        const SizedBox(height: AppSpacing.x5),
+                        AppPrimaryButton(
                           onPressed: _isSubmitting ? null : _submit,
-                          child: Text(
-                            _isSubmitting ? 'Creating account...' : 'Register',
-                          ),
+                          isLoading: _isSubmitting,
+                          label: 'Register',
+                          icon: Icons.person_add_alt_1,
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: AppSpacing.x3),
                         TextButton(
                           onPressed: _isSubmitting ? null : widget.onLoginTap,
                           child: const Text('Already have an account? Login'),

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../models/hotspot.dart';
 import '../theme/app_theme.dart';
 import '../widgets/damage_gauge.dart';
+import '../widgets/glass_panel.dart';
 import 'claim_screen.dart';
 
 class CameraScreen extends StatefulWidget {
@@ -150,12 +151,31 @@ class _CameraScreenState extends State<CameraScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: AppColors.background,
       body: Stack(
         fit: StackFit.expand,
         children: [
           // 1. Camera / background
           _buildCameraLayer(),
+          Positioned.fill(
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.white.withValues(alpha: 0.18),
+                      AppColors.oliveLight.withValues(alpha: 0.10),
+                      Colors.transparent,
+                      Colors.white.withValues(alpha: 0.16),
+                    ],
+                    stops: const [0.0, 0.22, 0.55, 1.0],
+                  ),
+                ),
+              ),
+            ),
+          ),
 
           // 2. Captured photo freeze-frame (native only, during analysis)
           if (_capturedImagePath != null && !kIsWeb)
@@ -197,11 +217,23 @@ class _CameraScreenState extends State<CameraScreen>
 
           // 6. Damage gauge — below the viewfinder, clearly separated
           if (_analysisComplete)
-            FadeTransition(
-              opacity: _resultFade,
-              child: Align(
-                alignment: const Alignment(0, 0.30),
-                child: _buildAnalysisResult(),
+            SlideTransition(
+              position:
+                  Tween<Offset>(
+                    begin: const Offset(0, 0.08),
+                    end: Offset.zero,
+                  ).animate(
+                    CurvedAnimation(
+                      parent: _resultController,
+                      curve: Curves.easeOut,
+                    ),
+                  ),
+              child: FadeTransition(
+                opacity: _resultFade,
+                child: Align(
+                  alignment: const Alignment(0, 0.30),
+                  child: _buildAnalysisResult(),
+                ),
               ),
             ),
 
@@ -238,22 +270,27 @@ class _CameraScreenState extends State<CameraScreen>
   Widget _buildCameraLayer() {
     if (_cameraError) {
       return Container(
-        color: const Color(0xFF080D08),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Colors.white.withValues(alpha: 0.92),
+              AppColors.oliveLight.withValues(alpha: 0.86),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.videocam_off,
-              color: AppColors.textMuted,
-              size: 48,
-            ),
+            const Icon(Icons.videocam_off, color: AppColors.primary, size: 48),
             const SizedBox(height: 12),
             Text(
               kIsWeb
                   ? 'Camera access was denied\nor no camera found in this browser.'
                   : 'Camera unavailable on this device.',
               textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.textMuted, fontSize: 13),
+              style: const TextStyle(color: AppColors.primary, fontSize: 13),
             ),
             const SizedBox(height: 8),
             const Text(
@@ -267,16 +304,25 @@ class _CameraScreenState extends State<CameraScreen>
 
     if (!_cameraReady || _cameraController == null) {
       return Container(
-        color: const Color(0xFF080D08),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Colors.white.withValues(alpha: 0.92),
+              AppColors.oliveLight.withValues(alpha: 0.84),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
         child: const Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircularProgressIndicator(color: AppColors.accent),
+              CircularProgressIndicator(color: AppColors.primary),
               SizedBox(height: 16),
               Text(
                 'Initialising camera...',
-                style: TextStyle(color: AppColors.textMuted, fontSize: 13),
+                style: TextStyle(color: AppColors.primary, fontSize: 13),
               ),
             ],
           ),
@@ -299,48 +345,52 @@ class _CameraScreenState extends State<CameraScreen>
   // ─── Analysis result panel ────────────────────────────────────────────────
 
   Widget _buildAnalysisResult() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 32),
+    return GlassPanel(
+      borderRadius: BorderRadius.circular(20),
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.80),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: AppColors.alertHigh.withValues(alpha: 0.4),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          DamageGauge(percentage: _currentDamage, size: 130),
-          const SizedBox(height: 16),
-          // Pixel ratio bar
-          _PixelRatioBar(damageRatio: _currentDamage / 100),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _ResultChip(
-                label: 'HEALTHY',
-                value: '${(100 - _currentDamage).toStringAsFixed(1)}%',
-                color: AppColors.accent,
-              ),
-              Container(width: 1, height: 28, color: AppColors.border),
-              _ResultChip(
-                label: 'DAMAGED',
-                value: '${_currentDamage.toStringAsFixed(1)}%',
-                color: AppColors.alertHigh,
-              ),
-              Container(width: 1, height: 28, color: AppColors.border),
-              _ResultChip(
-                label: 'CONFIDENCE',
-                value: '89%',
-                color: AppColors.alertMedium,
-              ),
-            ],
-          ),
+      tintColor: Colors.white.withValues(alpha: 0.66),
+      gradient: LinearGradient(
+        colors: [
+          Colors.white.withValues(alpha: 0.70),
+          AppColors.oliveLight.withValues(alpha: 0.54),
         ],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+      child: SizedBox(
+        width: MediaQuery.of(context).size.width - 64,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            DamageGauge(percentage: _currentDamage, size: 130),
+            const SizedBox(height: 16),
+            // Pixel ratio bar
+            _PixelRatioBar(damageRatio: _currentDamage / 100),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _ResultChip(
+                  label: 'HEALTHY',
+                  value: '${(100 - _currentDamage).toStringAsFixed(1)}%',
+                  color: AppColors.accent,
+                ),
+                Container(width: 1, height: 28, color: AppColors.border),
+                _ResultChip(
+                  label: 'DAMAGED',
+                  value: '${_currentDamage.toStringAsFixed(1)}%',
+                  color: AppColors.alertHigh,
+                ),
+                Container(width: 1, height: 28, color: AppColors.border),
+                _ResultChip(
+                  label: 'CONFIDENCE',
+                  value: '89%',
+                  color: AppColors.highlightWarm,
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -348,12 +398,15 @@ class _CameraScreenState extends State<CameraScreen>
   // ─── Telemetry HUD ────────────────────────────────────────────────────────
 
   Widget _buildTelemetryHUD() {
-    return Container(
+    return GlassPanel(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.75),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.accent.withValues(alpha: 0.25)),
+      borderRadius: BorderRadius.circular(14),
+      tintColor: Colors.white.withValues(alpha: 0.64),
+      gradient: LinearGradient(
+        colors: [
+          Colors.white.withValues(alpha: 0.7),
+          AppColors.oliveLight.withValues(alpha: 0.5),
+        ],
       ),
       child: Row(
         children: [
@@ -393,21 +446,16 @@ class _CameraScreenState extends State<CameraScreen>
       child: Row(
         children: [
           // Back button
-          GestureDetector(
+          GlassPanel(
             onTap: () => Navigator.pop(context),
-            child: Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.55),
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
-              ),
-              child: const Icon(
-                Icons.arrow_back_ios_new,
-                color: Colors.white,
-                size: 16,
-              ),
+            blurSigma: 8,
+            borderRadius: BorderRadius.circular(24),
+            padding: const EdgeInsets.all(10),
+            tintColor: Colors.white.withValues(alpha: 0.68),
+            child: const Icon(
+              Icons.arrow_back_ios_new,
+              color: AppColors.primary,
+              size: 16,
             ),
           ),
           const Spacer(),
@@ -424,42 +472,36 @@ class _CameraScreenState extends State<CameraScreen>
         color: AppColors.accent,
         icon: Icons.check_circle,
         label: 'ANALYSIS COMPLETE',
-        borderColor: AppColors.accent,
       );
     }
     if (_isCapturing) {
       return _badge(
-        color: AppColors.accent,
+        color: AppColors.primary,
         icon: null,
         label: 'AI SCANNING...',
         showSpinner: true,
-        borderColor: AppColors.accent.withValues(alpha: 0.5),
       );
     }
     return _badge(
-      color: Colors.white70,
+      color: AppColors.primary,
       icon: Icons.camera_alt_outlined,
       label: 'POINT AT DAMAGED AREA',
-      borderColor: Colors.white.withValues(alpha: 0.2),
-      bgColor: Colors.black.withValues(alpha: 0.5),
+      bgColor: Colors.white.withValues(alpha: 0.62),
     );
   }
 
   Widget _badge({
     required Color color,
     required String label,
-    required Color borderColor,
     IconData? icon,
     bool showSpinner = false,
     Color? bgColor,
   }) {
-    return Container(
+    return GlassPanel(
+      blurSigma: 9,
+      borderRadius: BorderRadius.circular(20),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-      decoration: BoxDecoration(
-        color: bgColor ?? color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: borderColor),
-      ),
+      tintColor: bgColor ?? Colors.white.withValues(alpha: 0.64),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -469,7 +511,7 @@ class _CameraScreenState extends State<CameraScreen>
               height: 12,
               child: CircularProgressIndicator(
                 strokeWidth: 1.5,
-                color: AppColors.accent,
+                color: AppColors.primary,
               ),
             ),
             const SizedBox(width: 6),
@@ -515,12 +557,15 @@ class _CameraScreenState extends State<CameraScreen>
                 ),
               )
             : _isCapturing
-            ? Container(
+            ? GlassPanel(
+                borderRadius: BorderRadius.circular(AppRadii.m),
                 padding: const EdgeInsets.symmetric(vertical: 18),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.6),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppColors.border),
+                tintColor: Colors.white.withValues(alpha: 0.66),
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.white.withValues(alpha: 0.7),
+                    AppColors.oliveLight.withValues(alpha: 0.48),
+                  ],
                 ),
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -530,14 +575,14 @@ class _CameraScreenState extends State<CameraScreen>
                       height: 16,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: AppColors.accent,
+                        color: AppColors.primary,
                       ),
                     ),
                     SizedBox(width: 10),
                     Text(
                       'Analysing crop damage...',
                       style: TextStyle(
-                        color: AppColors.textMuted,
+                        color: AppColors.primary,
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                       ),
@@ -553,8 +598,8 @@ class _CameraScreenState extends State<CameraScreen>
                 label: const Text('Capture & Analyse'),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 18),
-                  backgroundColor: AppColors.alertHigh,
-                  foregroundColor: Colors.white,
+                  backgroundColor: AppColors.oliveLight,
+                  foregroundColor: AppColors.primary,
                 ),
               ),
       ),
@@ -677,27 +722,26 @@ class _DamagedZoneBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return GlassPanel(
+      blurSigma: 8,
+      borderRadius: BorderRadius.circular(12),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-      decoration: BoxDecoration(
-        color: AppColors.alertHigh.withValues(alpha: 0.90),
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.alertHigh.withValues(alpha: 0.4),
-            blurRadius: 12,
-          ),
+      tintColor: Colors.white.withValues(alpha: 0.70),
+      gradient: LinearGradient(
+        colors: [
+          AppColors.alertHigh.withValues(alpha: 0.22),
+          Colors.white.withValues(alpha: 0.62),
         ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.crop_free, size: 13, color: Colors.white),
+          const Icon(Icons.crop_free, size: 13, color: AppColors.alertHigh),
           const SizedBox(width: 6),
           Text(
             'DAMAGED ZONE  ${percentage.toStringAsFixed(1)}%',
             style: const TextStyle(
-              color: Colors.white,
+              color: AppColors.alertHigh,
               fontSize: 12,
               fontWeight: FontWeight.w800,
               letterSpacing: 0.5,
@@ -724,7 +768,7 @@ class _PixelRatioBar extends StatelessWidget {
             const Text(
               'PIXEL SEGMENTATION',
               style: TextStyle(
-                color: AppColors.textMuted,
+                color: AppColors.primary,
                 fontSize: 9,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 0.8,
@@ -732,7 +776,7 @@ class _PixelRatioBar extends StatelessWidget {
             ),
             Text(
               'U-Net AI Model',
-              style: const TextStyle(color: AppColors.textMuted, fontSize: 9),
+              style: const TextStyle(color: AppColors.primary, fontSize: 9),
             ),
           ],
         ),
@@ -784,7 +828,7 @@ class _ResultChip extends StatelessWidget {
         Text(
           label,
           style: const TextStyle(
-            color: AppColors.textMuted,
+            color: AppColors.primary,
             fontSize: 9,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.6,
@@ -822,7 +866,7 @@ class _TelemetryItem extends StatelessWidget {
               Text(
                 label,
                 style: const TextStyle(
-                  color: AppColors.textMuted,
+                  color: AppColors.primary,
                   fontSize: 8,
                   fontWeight: FontWeight.w600,
                   letterSpacing: 0.8,
@@ -836,7 +880,7 @@ class _TelemetryItem extends StatelessWidget {
             style: TextStyle(
               color: valueColor ?? AppColors.textSecondary,
               fontSize: 10,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
               fontFamily: 'monospace',
               height: 1.4,
             ),
@@ -853,7 +897,7 @@ class _Divider extends StatelessWidget {
     return Container(
       width: 1,
       height: 34,
-      color: AppColors.border,
+      color: AppColors.primary.withValues(alpha: 0.24),
       margin: const EdgeInsets.symmetric(horizontal: 10),
     );
   }

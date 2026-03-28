@@ -18,6 +18,7 @@ class _NavigationScreenState extends State<NavigationScreen>
     with TickerProviderStateMixin {
   double _distanceMeters = 1400.0;
   bool _isSimulating = false;
+  bool _zoomed = false;
   bool get _isUnlocked => _distanceMeters <= 10.0;
 
   late AnimationController _pulseController;
@@ -134,91 +135,112 @@ class _NavigationScreenState extends State<NavigationScreen>
         ],
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              // Target info card
-              _buildTargetCard(),
-              const SizedBox(height: 20),
+        child: Stack(
+          children: [
+            SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  // Target info card
+                  _buildTargetCard(),
+                  const SizedBox(height: 20),
 
-              // Compass + distance
-              _buildCompassSection(),
-              const SizedBox(height: 20),
+                  // Compass + distance
+                  _buildCompassSection(),
+                  const SizedBox(height: 20),
 
-              // GPS coordinates
-              _buildCoordinatesCard(),
-              const SizedBox(height: 20),
+                  // GPS coordinates
+                  _buildCoordinatesCard(),
+                  const SizedBox(height: 20),
 
-              // Proximity progress bar
-              _buildProximityBar(),
-              const SizedBox(height: 24),
+                  // Proximity progress bar
+                  _buildProximityBar(),
+                  const SizedBox(height: 24),
 
-              // Demo simulate button
-              if (!_isUnlocked)
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: _isSimulating ? null : _simulateApproach,
-                    icon: _isSimulating
-                        ? const SizedBox(
-                            width: 14,
-                            height: 14,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: AppColors.accent,
-                            ),
-                          )
-                        : const Icon(Icons.directions_walk, size: 16),
-                    label: Text(
-                      _isSimulating
-                          ? 'Walking to hotspot...'
-                          : 'Simulate Approach  (Demo)',
+                  // Demo simulate button
+                  if (!_isUnlocked)
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: _isSimulating ? null : _simulateApproach,
+                        icon: _isSimulating
+                            ? const SizedBox(
+                                width: 14,
+                                height: 14,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: AppColors.accent,
+                                ),
+                              )
+                            : const Icon(Icons.directions_walk, size: 16),
+                        label: Text(
+                          _isSimulating
+                              ? 'Walking to hotspot...'
+                              : 'Simulate Approach  (Demo)',
+                        ),
+                      ),
+                    ),
+                  if (!_isUnlocked) const SizedBox(height: 12),
+
+                  // Capture Evidence button
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: _isUnlocked
+                          ? () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      CameraScreen(hotspot: widget.hotspot),
+                                ),
+                              );
+                            }
+                          : null,
+                      icon: Icon(
+                        _isUnlocked ? Icons.camera_alt : Icons.lock_outline,
+                        size: 18,
+                      ),
+                      label: Text(
+                        _isUnlocked
+                            ? 'Capture Evidence'
+                            : 'Get within 10 m to unlock',
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _isUnlocked
+                            ? AppColors.accent
+                            : AppColors.card,
+                        foregroundColor: _isUnlocked
+                            ? Colors.white
+                            : AppColors.textMuted,
+                        padding: const EdgeInsets.symmetric(vertical: 18),
+                        side: _isUnlocked
+                            ? null
+                            : const BorderSide(color: AppColors.border),
+                      ),
                     ),
                   ),
-                ),
-              if (!_isUnlocked) const SizedBox(height: 12),
-
-              // Capture Evidence button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: _isUnlocked
-                      ? () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  CameraScreen(hotspot: widget.hotspot),
-                            ),
-                          );
-                        }
-                      : null,
-                  icon: Icon(
-                    _isUnlocked ? Icons.camera_alt : Icons.lock_outline,
-                    size: 18,
-                  ),
-                  label: Text(
-                    _isUnlocked
-                        ? 'Capture Evidence'
-                        : 'Get within 10 m to unlock',
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _isUnlocked
-                        ? AppColors.accent
-                        : AppColors.card,
-                    foregroundColor: _isUnlocked
-                        ? Colors.white
-                        : AppColors.textMuted,
-                    padding: const EdgeInsets.symmetric(vertical: 18),
-                    side: _isUnlocked
-                        ? null
-                        : const BorderSide(color: AppColors.border),
-                  ),
-                ),
+                  const SizedBox(height: 8),
+                ],
               ),
-              const SizedBox(height: 8),
-            ],
-          ),
+            ),
+            Positioned(
+              right: 16,
+              top: 12,
+              child: Column(
+                children: [
+                  _floatingActionButton(
+                    icon: _zoomed ? Icons.zoom_out_map : Icons.zoom_in_map,
+                    onTap: () => setState(() => _zoomed = !_zoomed),
+                  ),
+                  const SizedBox(height: 10),
+                  _floatingActionButton(
+                    icon: Icons.my_location_outlined,
+                    onTap: _simulateApproach,
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -342,9 +364,14 @@ class _NavigationScreenState extends State<NavigationScreen>
           ),
         ),
         const SizedBox(height: 24),
-        CompassWidget(
-          bearing: _targetBearing + math.pi * _proximityFraction * 0.05,
-          distanceMeters: _distanceMeters,
+        AnimatedScale(
+          scale: _zoomed ? 1.08 : 1.0,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          child: CompassWidget(
+            bearing: _targetBearing + math.pi * _proximityFraction * 0.05,
+            distanceMeters: _distanceMeters,
+          ),
         ),
         const SizedBox(height: 8),
         const Text(
@@ -491,6 +518,28 @@ class _NavigationScreenState extends State<NavigationScreen>
           ],
         ),
       ],
+    );
+  }
+
+  Widget _floatingActionButton({
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 42,
+        height: 42,
+        decoration: BoxDecoration(
+          color: AppColors.surface.withValues(alpha: 0.72),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: AppColors.oliveLight.withValues(alpha: 0.2),
+          ),
+          boxShadow: AppShadows.base,
+        ),
+        child: Icon(icon, size: 18, color: AppColors.oliveLight),
+      ),
     );
   }
 }

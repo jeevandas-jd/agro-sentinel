@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../services/demo_data.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/app_state_view.dart';
 import '../../widgets/feature_card.dart';
 
 class ClaimsHistoryPage extends StatelessWidget {
@@ -11,6 +12,17 @@ class ClaimsHistoryPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final hotspots = DemoData.hotspots;
     final claim = DemoData.claim;
+
+    if (hotspots.isEmpty) {
+      return const Scaffold(
+        backgroundColor: AppColors.background,
+        body: AppStateView(
+          icon: Icons.assignment_late_outlined,
+          title: 'No claims yet',
+          subtitle: 'Captured evidence and generated claims will appear here.',
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: AppColors.background,
