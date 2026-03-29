@@ -69,7 +69,7 @@ class _CompassPainter extends CustomPainter {
 
     // Outer glow ring
     final glowPaint = Paint()
-      ..color = AppColors.accent.withValues(alpha: 0.08)
+      ..color = AppColors.primary.withValues(alpha: 0.10)
       ..style = PaintingStyle.fill;
     canvas.drawCircle(center, radius + 6, glowPaint);
 
@@ -80,13 +80,10 @@ class _CompassPainter extends CustomPainter {
       ..strokeWidth = 2;
     canvas.drawCircle(center, radius, outerRingPaint);
 
-    // Background
+    // Background — light mode
     final bgPaint = Paint()
       ..shader = RadialGradient(
-        colors: [
-          const Color(0xFF152015),
-          const Color(0xFF0A120A),
-        ],
+        colors: [AppColors.surface, AppColors.inputFill],
       ).createShader(Rect.fromCircle(center: center, radius: radius))
       ..style = PaintingStyle.fill;
     canvas.drawCircle(center, radius - 1, bgPaint);
@@ -101,7 +98,7 @@ class _CompassPainter extends CustomPainter {
 
       final tickPaint = Paint()
         ..color = isMajor
-            ? AppColors.textSecondary.withValues(alpha: 0.7)
+            ? AppColors.textSecondary
             : AppColors.border
         ..strokeWidth = isMajor ? 1.5 : 0.8;
 
@@ -156,7 +153,7 @@ class _CompassPainter extends CustomPainter {
 
     // Target-pointing needle (green — toward hotspot)
     final greenNeedle = Paint()
-      ..color = AppColors.accent
+      ..color = AppColors.primary
       ..style = PaintingStyle.fill;
     final greenPath = Path()
       ..moveTo(0, -needleLength)
@@ -182,18 +179,18 @@ class _CompassPainter extends CustomPainter {
 
     // Center hub
     final hubPaint = Paint()
-      ..color = AppColors.card
+      ..color = AppColors.surface
       ..style = PaintingStyle.fill;
     canvas.drawCircle(center, 14, hubPaint);
     final hubRingPaint = Paint()
-      ..color = AppColors.accent
+      ..color = AppColors.primary
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
     canvas.drawCircle(center, 14, hubRingPaint);
 
     // Target icon in center
     final crossPaint = Paint()
-      ..color = AppColors.accent
+      ..color = AppColors.primary
       ..strokeWidth = 2;
     canvas.drawLine(
       Offset(center.dx - 6, center.dy),

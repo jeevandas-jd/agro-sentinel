@@ -9,16 +9,13 @@ import '../models/hotspot.dart';
 import '../services/demo_data.dart';
 import '../theme/app_theme.dart';
 import '../widgets/damage_gauge.dart';
+import '../widgets/glass_panel.dart';
 
 class ClaimScreen extends StatefulWidget {
   final Hotspot hotspot;
   final String? capturedImagePath;
 
-  const ClaimScreen({
-    super.key,
-    required this.hotspot,
-    this.capturedImagePath,
-  });
+  const ClaimScreen({super.key, required this.hotspot, this.capturedImagePath});
 
   @override
   State<ClaimScreen> createState() => _ClaimScreenState();
@@ -38,9 +35,10 @@ class _ClaimScreenState extends State<ClaimScreen>
       vsync: this,
       duration: const Duration(milliseconds: 700),
     )..forward();
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _fadeController, curve: Curves.easeOut),
-    );
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _fadeController, curve: Curves.easeOut));
   }
 
   @override
@@ -136,9 +134,18 @@ class _ClaimScreenState extends State<ClaimScreen>
           _pdfTable([
             ['Evidence ID', analysis['evidenceId'] as String],
             ['Damage Percentage', '${analysis['damagePercentage']}%'],
-            ['Healthy Pixel Ratio', '${((analysis['healthyPixelRatio'] as double) * 100).toStringAsFixed(1)}%'],
-            ['Damaged Pixel Ratio', '${((analysis['damagedPixelRatio'] as double) * 100).toStringAsFixed(1)}%'],
-            ['AI Confidence Score', '${((analysis['confidenceScore'] as double) * 100).toStringAsFixed(0)}%'],
+            [
+              'Healthy Pixel Ratio',
+              '${((analysis['healthyPixelRatio'] as double) * 100).toStringAsFixed(1)}%',
+            ],
+            [
+              'Damaged Pixel Ratio',
+              '${((analysis['damagedPixelRatio'] as double) * 100).toStringAsFixed(1)}%',
+            ],
+            [
+              'AI Confidence Score',
+              '${((analysis['confidenceScore'] as double) * 100).toStringAsFixed(0)}%',
+            ],
             ['Damage Classification', analysis['damageClass'] as String],
           ]),
           if (capturedImg != null) ...[
@@ -157,10 +164,7 @@ class _ClaimScreenState extends State<ClaimScreen>
               child: pw.Text(
                 'Captured: ${widget.hotspot.latitude.toStringAsFixed(4)}, '
                 '${widget.hotspot.longitude.toStringAsFixed(4)}  •  12 Mar 2024',
-                style: pw.TextStyle(
-                  fontSize: 9,
-                  color: PdfColors.grey600,
-                ),
+                style: pw.TextStyle(fontSize: 9, color: PdfColors.grey600),
               ),
             ),
           ],
@@ -320,10 +324,7 @@ class _ClaimScreenState extends State<ClaimScreen>
   pw.Widget _pdfTable(List<List<String>> rows) {
     return pw.Table(
       border: pw.TableBorder.all(color: PdfColors.grey200, width: 0.5),
-      columnWidths: const {
-        0: pw.FlexColumnWidth(2),
-        1: pw.FlexColumnWidth(3),
-      },
+      columnWidths: const {0: pw.FlexColumnWidth(2), 1: pw.FlexColumnWidth(3)},
       children: rows.map((row) {
         return pw.TableRow(
           children: [
@@ -360,10 +361,22 @@ class _ClaimScreenState extends State<ClaimScreen>
 
   pw.Widget _pdfEvidenceChain() {
     final steps = [
-      ('Satellite Detection', 'NDVI anomaly detected via Planet NICFI • 10 Mar 2024'),
-      ('GPS Truth Walk', 'Farmer navigated to hotspot using AgriSentinel • 12 Mar 2024'),
-      ('Ground Evidence Captured', 'AI scan: 67.4% damage • Confidence 89% • 12 Mar 2024'),
-      ('Claim Dossier Generated', 'CLM-2024-001 • AIMS Compliant PDF • 12 Mar 2024'),
+      (
+        'Satellite Detection',
+        'NDVI anomaly detected via Planet NICFI • 10 Mar 2024',
+      ),
+      (
+        'GPS Truth Walk',
+        'Farmer navigated to hotspot using AgriSentinel • 12 Mar 2024',
+      ),
+      (
+        'Ground Evidence Captured',
+        'AI scan: 67.4% damage • Confidence 89% • 12 Mar 2024',
+      ),
+      (
+        'Claim Dossier Generated',
+        'CLM-2024-001 • AIMS Compliant PDF • 12 Mar 2024',
+      ),
     ];
 
     return pw.Column(
@@ -466,7 +479,7 @@ class _ClaimScreenState extends State<ClaimScreen>
     final parcel = widget.hotspot.landParcel;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.oliveLight.withValues(alpha: 0.26),
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 18),
@@ -513,36 +526,45 @@ class _ClaimScreenState extends State<ClaimScreen>
       ),
       body: FadeTransition(
         opacity: _fadeAnimation,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildClaimBanner(claim),
-              const SizedBox(height: 16),
-              _buildBeforeAfterSection(),
-              const SizedBox(height: 16),
-              if (parcel != null) ...[
-                _buildSectionHeader(Icons.landscape, 'Land Parcel Details'),
-                const SizedBox(height: 10),
-                _buildParcelCard(parcel),
+        child: SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0, 0.04),
+            end: Offset.zero,
+          ).animate(_fadeController),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildClaimBanner(claim),
                 const SizedBox(height: 16),
+                _buildBeforeAfterSection(),
+                const SizedBox(height: 16),
+                if (parcel != null) ...[
+                  _buildSectionHeader(Icons.landscape, 'Land Parcel Details'),
+                  const SizedBox(height: 10),
+                  _buildParcelCard(parcel),
+                  const SizedBox(height: 16),
+                ],
+                _buildSectionHeader(Icons.biotech, 'AI Damage Analysis'),
+                const SizedBox(height: 10),
+                _buildAIAnalysisCard(analysis),
+                const SizedBox(height: 16),
+                _buildSectionHeader(
+                  Icons.satellite_alt,
+                  'Satellite Detection Data',
+                ),
+                const SizedBox(height: 10),
+                _buildSatelliteCard(),
+                const SizedBox(height: 16),
+                _buildSectionHeader(Icons.link, 'Evidence Chain'),
+                const SizedBox(height: 10),
+                _buildEvidenceChain(),
+                const SizedBox(height: 28),
+                _buildGenerateButton(),
+                const SizedBox(height: 24),
               ],
-              _buildSectionHeader(Icons.biotech, 'AI Damage Analysis'),
-              const SizedBox(height: 10),
-              _buildAIAnalysisCard(analysis),
-              const SizedBox(height: 16),
-              _buildSectionHeader(Icons.satellite_alt, 'Satellite Detection Data'),
-              const SizedBox(height: 10),
-              _buildSatelliteCard(),
-              const SizedBox(height: 16),
-              _buildSectionHeader(Icons.link, 'Evidence Chain'),
-              const SizedBox(height: 10),
-              _buildEvidenceChain(),
-              const SizedBox(height: 28),
-              _buildGenerateButton(),
-              const SizedBox(height: 24),
-            ],
+            ),
           ),
         ),
       ),
@@ -550,19 +572,17 @@ class _ClaimScreenState extends State<ClaimScreen>
   }
 
   Widget _buildClaimBanner(Map<String, dynamic> claim) {
-    return Container(
+    return GlassPanel(
+      borderRadius: BorderRadius.circular(20),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppColors.primary.withValues(alpha: 0.3),
-            AppColors.card,
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.accent.withValues(alpha: 0.3)),
+      tintColor: Colors.white.withValues(alpha: 0.66),
+      gradient: LinearGradient(
+        colors: [
+          Colors.white.withValues(alpha: 0.72),
+          AppColors.oliveLight.withValues(alpha: 0.52),
+        ],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
       ),
       child: Row(
         children: [
@@ -588,7 +608,7 @@ class _ClaimScreenState extends State<ClaimScreen>
                 Text(
                   claim['claimId'] as String,
                   style: const TextStyle(
-                    color: AppColors.accent,
+                    color: AppColors.primary,
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.3,
@@ -599,7 +619,7 @@ class _ClaimScreenState extends State<ClaimScreen>
                 Text(
                   'Generated: ${claim['createdAt']}',
                   style: const TextStyle(
-                    color: AppColors.textMuted,
+                    color: AppColors.primary,
                     fontSize: 11,
                   ),
                 ),
@@ -611,12 +631,14 @@ class _ClaimScreenState extends State<ClaimScreen>
             decoration: BoxDecoration(
               color: AppColors.accent.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.accent.withValues(alpha: 0.4)),
+              border: Border.all(
+                color: AppColors.accent.withValues(alpha: 0.4),
+              ),
             ),
             child: const Text(
               'READY',
               style: TextStyle(
-                color: AppColors.accent,
+                color: AppColors.primary,
                 fontSize: 10,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 1.0,
@@ -682,15 +704,18 @@ class _ClaimScreenState extends State<ClaimScreen>
 
   Widget _buildAIAnalysisCard(Map<String, dynamic> analysis) {
     final damage = analysis['damagePercentage'] as double;
-    final confidence =
-        ((analysis['confidenceScore'] as double) * 100).toStringAsFixed(0);
+    final confidence = ((analysis['confidenceScore'] as double) * 100)
+        .toStringAsFixed(0);
 
-    return Container(
+    return GlassPanel(
+      borderRadius: BorderRadius.circular(18),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+      tintColor: Colors.white.withValues(alpha: 0.66),
+      gradient: LinearGradient(
+        colors: [
+          Colors.white.withValues(alpha: 0.72),
+          AppColors.oliveLight.withValues(alpha: 0.52),
+        ],
       ),
       child: Column(
         children: [
@@ -711,7 +736,7 @@ class _ClaimScreenState extends State<ClaimScreen>
                     _SmallDetailRow(
                       label: 'AI Confidence',
                       value: '$confidence%',
-                      valueColor: AppColors.accent,
+                      valueColor: AppColors.highlightWarm,
                     ),
                     const SizedBox(height: 10),
                     _SmallDetailRow(
@@ -820,12 +845,15 @@ class _ClaimScreenState extends State<ClaimScreen>
       ),
     ];
 
-    return Container(
+    return GlassPanel(
+      borderRadius: BorderRadius.circular(18),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+      tintColor: Colors.white.withValues(alpha: 0.64),
+      gradient: LinearGradient(
+        colors: [
+          Colors.white.withValues(alpha: 0.72),
+          AppColors.oliveLight.withValues(alpha: 0.48),
+        ],
       ),
       child: Column(
         children: items.asMap().entries.map((entry) {
@@ -910,12 +938,15 @@ class _ClaimScreenState extends State<ClaimScreen>
 
   Widget _buildGenerateButton() {
     if (_isGenerated) {
-      return Container(
+      return GlassPanel(
+        borderRadius: BorderRadius.circular(18),
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppColors.accent.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.accent.withValues(alpha: 0.4)),
+        tintColor: Colors.white.withValues(alpha: 0.66),
+        gradient: LinearGradient(
+          colors: [
+            Colors.white.withValues(alpha: 0.72),
+            AppColors.oliveLight.withValues(alpha: 0.56),
+          ],
         ),
         child: Row(
           children: [
@@ -952,23 +983,45 @@ class _ClaimScreenState extends State<ClaimScreen>
 
     return SizedBox(
       width: double.infinity,
-      child: ElevatedButton.icon(
-        onPressed: _isGenerating ? null : _generateReport,
-        icon: _isGenerating
-            ? const SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: Colors.white,
-                ),
-              )
-            : const Icon(Icons.picture_as_pdf, size: 18),
-        label: Text(
-          _isGenerating ? 'Generating AIMS Report...' : 'Generate & Download Report PDF',
+      child: GlassPanel(
+        onTap: _isGenerating ? null : _generateReport,
+        borderRadius: BorderRadius.circular(18),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        tintColor: Colors.white.withValues(alpha: 0.7),
+        gradient: LinearGradient(
+          colors: [
+            Colors.white.withValues(alpha: 0.72),
+            AppColors.oliveLight.withValues(alpha: 0.58),
+          ],
         ),
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 18),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _isGenerating
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AppColors.primary,
+                    ),
+                  )
+                : const Icon(
+                    Icons.picture_as_pdf,
+                    size: 18,
+                    color: AppColors.primary,
+                  ),
+            const SizedBox(width: 10),
+            Text(
+              _isGenerating
+                  ? 'Generating AIMS Report...'
+                  : 'Generate & Download Report PDF',
+              style: const TextStyle(
+                color: AppColors.primary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -977,12 +1030,12 @@ class _ClaimScreenState extends State<ClaimScreen>
   Widget _buildSectionHeader(IconData icon, String title) {
     return Row(
       children: [
-        Icon(icon, size: 14, color: AppColors.accent),
+        Icon(icon, size: 14, color: AppColors.primary),
         const SizedBox(width: 6),
         Text(
           title,
           style: const TextStyle(
-            color: AppColors.textSecondary,
+            color: AppColors.primary,
             fontSize: 12,
             fontWeight: FontWeight.w700,
             letterSpacing: 0.3,
@@ -1016,18 +1069,23 @@ class _ImageCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
+    return GlassPanel(
+      borderRadius: BorderRadius.circular(16),
+      padding: EdgeInsets.zero,
+      tintColor: Colors.white.withValues(alpha: 0.66),
+      gradient: LinearGradient(
+        colors: [
+          Colors.white.withValues(alpha: 0.72),
+          color.withValues(alpha: 0.22),
+        ],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
       ),
       child: Column(
         children: [
           // Image area
           ClipRRect(
-            borderRadius:
-                const BorderRadius.vertical(top: Radius.circular(13)),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(13)),
             child: SizedBox(
               height: 110,
               child: (capturedPath != null && !kIsWeb)
@@ -1040,22 +1098,14 @@ class _ImageCard extends StatelessWidget {
                           errorBuilder: (context, err, stack) =>
                               _placeholder(color, icon),
                         ),
-                        Positioned(
-                          top: 8,
-                          left: 8,
-                          child: _labelChip(color),
-                        ),
+                        Positioned(top: 8, left: 8, child: _labelChip(color)),
                       ],
                     )
                   : Stack(
                       fit: StackFit.expand,
                       children: [
                         _placeholder(color, icon),
-                        Positioned(
-                          top: 8,
-                          left: 8,
-                          child: _labelChip(color),
-                        ),
+                        Positioned(top: 8, left: 8, child: _labelChip(color)),
                       ],
                     ),
             ),
@@ -1111,8 +1161,8 @@ class _ImageCard extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            color.withValues(alpha: 0.08),
-            Colors.black.withValues(alpha: 0.4),
+            Colors.white.withValues(alpha: 0.76),
+            color.withValues(alpha: 0.18),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -1150,12 +1200,15 @@ class _InfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return GlassPanel(
+      borderRadius: BorderRadius.circular(18),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+      tintColor: Colors.white.withValues(alpha: 0.64),
+      gradient: LinearGradient(
+        colors: [
+          Colors.white.withValues(alpha: 0.72),
+          AppColors.oliveLight.withValues(alpha: 0.46),
+        ],
       ),
       child: Column(
         children: children.asMap().entries.map((entry) {
@@ -1200,7 +1253,7 @@ class _DetailRow extends StatelessWidget {
         Text(
           value,
           style: TextStyle(
-            color: valueColor ?? AppColors.textPrimary,
+            color: valueColor ?? AppColors.primary,
             fontSize: 12,
             fontWeight: FontWeight.w600,
             fontFamily: mono ? 'monospace' : null,
@@ -1240,7 +1293,7 @@ class _SmallDetailRow extends StatelessWidget {
         Text(
           value,
           style: TextStyle(
-            color: valueColor ?? AppColors.textPrimary,
+            color: valueColor ?? AppColors.primary,
             fontSize: 12,
             fontWeight: FontWeight.w700,
           ),
@@ -1279,7 +1332,7 @@ class _MiniStat extends StatelessWidget {
         Text(
           value,
           style: TextStyle(
-            color: AppColors.textSecondary,
+            color: AppColors.primary,
             fontSize: 11,
             fontWeight: FontWeight.w600,
             fontFamily: mono ? 'monospace' : null,

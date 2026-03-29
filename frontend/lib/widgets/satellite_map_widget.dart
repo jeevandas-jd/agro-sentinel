@@ -68,13 +68,13 @@ class _SatelliteMapWidgetState extends State<SatelliteMapWidget>
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.7),
+                  color: AppColors.darkOverlay,
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: const Text(
                   'NDVI SATELLITE VIEW  •  PALAKKAD, KERALA',
                   style: TextStyle(
-                    color: AppColors.textSecondary,
+                    color: Colors.white70,
                     fontSize: 9,
                     letterSpacing: 0.8,
                     fontWeight: FontWeight.w600,
@@ -88,7 +88,7 @@ class _SatelliteMapWidgetState extends State<SatelliteMapWidget>
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.7),
+                  color: AppColors.darkOverlay,
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Row(
@@ -97,8 +97,8 @@ class _SatelliteMapWidgetState extends State<SatelliteMapWidget>
                     Container(
                       width: 6,
                       height: 6,
-                      decoration: BoxDecoration(
-                        color: AppColors.accent,
+                      decoration: const BoxDecoration(
+                        color: AppColors.primary,
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -106,7 +106,7 @@ class _SatelliteMapWidgetState extends State<SatelliteMapWidget>
                     const Text(
                       'LIVE',
                       style: TextStyle(
-                        color: AppColors.accent,
+                        color: AppColors.primaryLight,
                         fontSize: 9,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 1.0,
@@ -134,8 +134,8 @@ class _SatelliteMapPainter extends CustomPainter {
     final w = size.width;
     final h = size.height;
 
-    // Base: dark satellite terrain
-    final bgPaint = Paint()..color = const Color(0xFF0A160A);
+    // Base: rich dark satellite terrain
+    final bgPaint = Paint()..color = const Color(0xFF1A2E15);
     canvas.drawRect(Rect.fromLTWH(0, 0, w, h), bgPaint);
 
     // Terrain gradient overlay
@@ -143,9 +143,9 @@ class _SatelliteMapPainter extends CustomPainter {
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
       colors: [
-        const Color(0xFF0D1F0D),
-        const Color(0xFF111A0D),
-        const Color(0xFF0E1A10),
+        const Color(0xFF1E3A18),
+        const Color(0xFF243D1C),
+        const Color(0xFF1A3414),
       ],
     ).createShader(Rect.fromLTWH(0, 0, w, h));
     canvas.drawRect(
@@ -153,16 +153,16 @@ class _SatelliteMapPainter extends CustomPainter {
       Paint()..shader = terrainGradient,
     );
 
-    // Farm field patches (varying health)
+    // Farm field patches (varying health) — richer greens
     final fieldColors = [
-      const Color(0xFF1A3A1A),
-      const Color(0xFF1E4020),
-      const Color(0xFF2A4A1A),
-      const Color(0xFF163016),
-      const Color(0xFF243824),
-      const Color(0xFF1C3020),
-      const Color(0xFF2E4A22),
-      const Color(0xFF1A2E14),
+      const Color(0xFF2A5224),
+      const Color(0xFF2E6030),
+      const Color(0xFF3A5A22),
+      const Color(0xFF1E4018),
+      const Color(0xFF324A28),
+      const Color(0xFF264038),
+      const Color(0xFF3E5A2C),
+      const Color(0xFF224216),
     ];
 
     final fieldRects = [
@@ -191,11 +191,7 @@ class _SatelliteMapPainter extends CustomPainter {
         ..strokeWidth = 1.5;
       final rect = fieldRects[i];
       for (double y = rect.top + 6; y < rect.bottom; y += 6) {
-        canvas.drawLine(
-          Offset(rect.left, y),
-          Offset(rect.right, y),
-          rowPaint,
-        );
+        canvas.drawLine(Offset(rect.left, y), Offset(rect.right, y), rowPaint);
       }
     }
 
@@ -237,12 +233,36 @@ class _SatelliteMapPainter extends CustomPainter {
 
     // HS-001 — high severity (red), position at ~60%, 42%
     final hs1Center = Offset(w * 0.61, h * 0.42);
-    _drawHotspot(canvas, hs1Center, AppColors.alertHigh, pulseValue, 'HS-001', 'HIGH');
+    _drawHotspot(
+      canvas,
+      hs1Center,
+      AppColors.alertHigh,
+      pulseValue,
+      'HS-001',
+      'HIGH',
+    );
 
     // HS-002 — medium severity (orange), position at ~73%, 26%
     final hs2Center = Offset(w * 0.73, h * 0.26);
-    _drawHotspot(canvas, hs2Center, AppColors.alertMedium, 1.0 - pulseValue * 0.3, 'HS-002', 'MED');
+    _drawHotspot(
+      canvas,
+      hs2Center,
+      AppColors.alertMedium,
+      1.0 - pulseValue * 0.3,
+      'HS-002',
+      'MED',
+    );
 
+    // HS-003 — medium severity (orange), wind damage, position at ~20%, 70%
+    final hs3Center = Offset(w * 0.20, h * 0.70);
+    _drawHotspot(
+      canvas,
+      hs3Center,
+      AppColors.alertMedium,
+      0.7 + pulseValue * 0.2,
+      'HS-003',
+      'MED',
+    );
     // Farmer location (blue pulsing dot)
     final farmerPos = Offset(w * 0.30, h * 0.60);
     _drawFarmerDot(canvas, farmerPos, pulseValue);

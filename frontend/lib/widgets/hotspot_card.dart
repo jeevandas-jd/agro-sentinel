@@ -2,265 +2,286 @@ import 'package:flutter/material.dart';
 import '../models/hotspot.dart';
 import '../theme/app_theme.dart';
 
-class HotspotCard extends StatelessWidget {
+class HotspotCard extends StatefulWidget {
   final Hotspot hotspot;
   final VoidCallback onTap;
 
   const HotspotCard({super.key, required this.hotspot, required this.onTap});
 
   @override
+  State<HotspotCard> createState() => _HotspotCardState();
+}
+
+class _HotspotCardState extends State<HotspotCard>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _hoverController;
+  late Animation<double> _elevationAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _hoverController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 180),
+      lowerBound: 0.0,
+      upperBound: 1.0,
+    );
+    _elevationAnim = _hoverController;
+  }
+
+  @override
+  void dispose() {
+    _hoverController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: hotspot.severityColor.withValues(alpha: 0.35),
-            width: 1,
-          ),
+      onTapDown: (_) => _hoverController.forward(),
+      onTapUp: (_) {
+        _hoverController.reverse();
+        widget.onTap();
+      },
+      onTapCancel: () => _hoverController.reverse(),
+      child: AnimatedBuilder(
+        animation: _elevationAnim,
+        builder: (context, child) => Transform.scale(
+          scale: 1.0 - _elevationAnim.value * 0.02,
+          child: child,
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: hotspot.severityColor.withValues(alpha: 0.08),
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(15),
-                ),
-              ),
-              child: Row(
+        child: _buildCard(),
+      ),
+    );
+  }
+
+  Widget _buildCard() {
+    final h = widget.hotspot;
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadii.l),
+        border: Border.all(color: AppColors.border),
+        boxShadow: AppShadows.card,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Aerial image header
+          ClipRRect(
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(AppRadii.l),
+              topRight: Radius.circular(AppRadii.l),
+            ),
+            child: SizedBox(
+              height: 110,
+              child: Stack(
+                fit: StackFit.expand,
                 children: [
-                  Container(
-                    width: 10,
-                    height: 10,
+                  // Simulated aerial field
+                  DecoratedBox(
                     decoration: BoxDecoration(
-                      color: hotspot.severityColor,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: hotspot.severityColor.withValues(alpha: 0.6),
-                          blurRadius: 6,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    hotspot.id,
-                    style: const TextStyle(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 7,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: hotspot.severityColor.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(
-                        color: hotspot.severityColor.withValues(alpha: 0.4),
-                        width: 1,
-                      ),
-                    ),
-                    child: Text(
-                      hotspot.severityLabel,
-                      style: TextStyle(
-                        color: hotspot.severityColor,
-                        fontSize: 9,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.8,
+                      gradient: LinearGradient(
+                        colors: [
+                          const Color(0xFF2D5226),
+                          const Color(0xFF4A7C3F),
+                          const Color(0xFF3A6432),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
                     ),
                   ),
-                  const Spacer(),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.near_me_outlined,
-                        size: 12,
-                        color: AppColors.textMuted,
+                  CustomPaint(painter: _FieldGridPainter()),
+
+                  // Severity badge top-left
+                  Positioned(
+                    top: 10,
+                    left: 10,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
                       ),
-                      const SizedBox(width: 3),
-                      Text(
-                        hotspot.formattedDistance,
+                      decoration: BoxDecoration(
+                        color: h.severityColor.withValues(alpha: 0.92),
+                        borderRadius: BorderRadius.circular(AppRadii.pill),
+                      ),
+                      child: Text(
+                        h.severityLabel.toUpperCase(),
                         style: const TextStyle(
-                          color: AppColors.textMuted,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.6,
                         ),
                       ),
-                    ],
+                    ),
+                  ),
+
+                  // Ha overlay bottom-right
+                  Positioned(
+                    bottom: 10,
+                    right: 10,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.darkOverlay,
+                        borderRadius: BorderRadius.circular(AppRadii.s),
+                      ),
+                      child: Row(
+                        children: [
+                          Text(
+                            h.cropType,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            '${h.estimatedAreaHa} ha',
+                            style: const TextStyle(
+                              color: AppColors.primaryLight,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
+          ),
 
-            // Body
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+          // Info row
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _InfoRow(
-                              icon: Icons.grass,
-                              label: 'Crop',
-                              value: hotspot.cropType,
-                            ),
-                            const SizedBox(height: 8),
-                            _InfoRow(
-                              icon: Icons.warning_amber_rounded,
-                              label: 'Cause',
-                              value: hotspot.damageCause,
-                              valueColor: hotspot.severityColor,
-                            ),
-                            const SizedBox(height: 8),
-                            _InfoRow(
-                              icon: Icons.schedule,
-                              label: 'Detected',
-                              value: hotspot.detectedAt,
-                            ),
-                          ],
+                      Text(
+                        '${h.cropType} Field',
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.2,
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      // NDVI delta block
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
+                      const SizedBox(height: 3),
+                      Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(12),
+                            width: 8,
+                            height: 8,
+                            margin: const EdgeInsets.only(right: 5),
                             decoration: BoxDecoration(
-                              color: AppColors.alertHigh.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: AppColors.alertHigh.withValues(alpha: 0.2),
-                              ),
-                            ),
-                            child: Column(
-                              children: [
-                                Text(
-                                  hotspot.ndviDeltaLabel,
-                                  style: const TextStyle(
-                                    color: AppColors.alertHigh,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: -0.5,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                const Text(
-                                  'NDVI\nDROP',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: AppColors.textMuted,
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.w600,
-                                    height: 1.3,
-                                  ),
-                                ),
-                              ],
+                              color: h.severityColor,
+                              shape: BoxShape.circle,
                             ),
                           ),
-                          const SizedBox(height: 6),
-                          Text(
-                            '${hotspot.estimatedAreaHa} ha affected',
-                            style: const TextStyle(
-                              color: AppColors.textMuted,
-                              fontSize: 10,
+                          Flexible(
+                            child: Text(
+                              h.damageCause,
+                              style: const TextStyle(
+                                color: AppColors.textMuted,
+                                fontSize: 12,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
                       ),
                     ],
                   ),
-                  const SizedBox(height: 14),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: onTap,
-                      icon: const Icon(Icons.explore, size: 16),
-                      label: const Text('Begin Truth Walk'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: hotspot.severityColor.withValues(alpha: 0.15),
-                        foregroundColor: hotspot.severityColor,
-                        side: BorderSide(
-                          color: hotspot.severityColor.withValues(alpha: 0.5),
+                ),
+                const SizedBox(width: 10),
+                // NDVI badge
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(AppRadii.pill),
+                        border: Border.all(
+                          color: AppColors.primary.withValues(alpha: 0.3),
                         ),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      child: Text(
+                        'NDVI ${h.ndviScore.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          color: AppColors.primaryDark,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${h.estimatedAreaHa} ha affected',
+                      style: const TextStyle(
+                        color: AppColors.textMuted,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(width: 10),
+                // Arrow button
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    shape: BoxShape.circle,
+                    boxShadow: AppShadows.raised,
                   ),
-                ],
-              ),
+                  child: const Icon(
+                    Icons.arrow_forward,
+                    color: Colors.white,
+                    size: 16,
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 }
 
-class _InfoRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-  final Color? valueColor;
+class _FieldGridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.06)
+      ..strokeWidth = 0.8
+      ..style = PaintingStyle.stroke;
 
-  const _InfoRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-    this.valueColor,
-  });
+    for (double y = 0; y < size.height; y += 14) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+    for (double x = 0; x < size.width; x += 20) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+    }
+  }
 
   @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, size: 13, color: AppColors.textMuted),
-        const SizedBox(width: 6),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label.toUpperCase(),
-              style: const TextStyle(
-                color: AppColors.textMuted,
-                fontSize: 9,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.8,
-              ),
-            ),
-            Text(
-              value,
-              style: TextStyle(
-                color: valueColor ?? AppColors.textPrimary,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
