@@ -8,9 +8,9 @@ import 'edit_profile_page.dart';
 import 'profile_service.dart';
 
 class ProfilePage extends StatefulWidget {
-  final DemoUser user;
+  final AppUser user;
   final ProfileService profileService;
-  final Future<void> Function(DemoUser user) onUserUpdated;
+  final Future<void> Function(AppUser user) onUserUpdated;
   final Future<void> Function() onLogout;
 
   const ProfilePage({
@@ -29,7 +29,7 @@ class _ProfilePageState extends State<ProfilePage> {
   bool _isSaving = false;
 
   Future<void> _editProfile() async {
-    final editedUser = await Navigator.of(context).push<DemoUser>(
+    final editedUser = await Navigator.of(context).push<AppUser>(
       MaterialPageRoute(builder: (_) => EditProfilePage(user: widget.user)),
     );
     if (editedUser == null) return;
@@ -37,7 +37,6 @@ class _ProfilePageState extends State<ProfilePage> {
     setState(() => _isSaving = true);
     try {
       final savedUser = await widget.profileService.updateProfile(
-        user: widget.user,
         name: editedUser.name,
         region: editedUser.region,
       );

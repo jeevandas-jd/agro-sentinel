@@ -9,7 +9,7 @@ import 'auth_validators.dart';
 
 class RegisterPage extends StatefulWidget {
   final AuthService authService;
-  final Future<void> Function(DemoUser user) onRegistered;
+  final Future<void> Function(AppUser user) onRegistered;
   final VoidCallback onLoginTap;
 
   const RegisterPage({

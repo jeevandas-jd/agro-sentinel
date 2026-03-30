@@ -123,7 +123,7 @@ class _SettingsPageState extends State<SettingsPage> {
           backgroundColor: AppColors.card,
           title: const Text('Delete Account'),
           content: const Text(
-            'This will remove your demo account from local storage and log you out.',
+            'This will permanently remove your account and log you out.',
           ),
           actions: [
             TextButton(
@@ -184,14 +184,14 @@ class _SettingsPageState extends State<SettingsPage> {
               FeatureCard(
                 icon: Icons.lock_outline,
                 title: 'Change password',
-                subtitle: 'Update your demo account credentials',
+                subtitle: 'Update your account credentials',
                 onTap: _showChangePasswordDialog,
               ),
               const SizedBox(height: 8),
               FeatureCard(
                 icon: Icons.delete_outline,
                 title: 'Delete account',
-                subtitle: 'Permanently remove this local demo account',
+                subtitle: 'Permanently remove your account',
                 onTap: _confirmDelete,
                 trailing: const Icon(
                   Icons.warning_amber_rounded,

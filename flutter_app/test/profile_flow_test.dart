@@ -45,7 +45,7 @@ class _ProfileHost extends StatefulWidget {
 }
 
 class _ProfileHostState extends State<_ProfileHost> {
-  DemoUser _user = const DemoUser(
+  AppUser _user = const AppUser(
     name: 'Rajan Pillai',
     email: 'demo@agrisentinel.app',
     region: 'Palakkad District, Kerala',

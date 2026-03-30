@@ -13,7 +13,7 @@ void main() {
   });
 
   testWidgets('login succeeds with demo credentials', (tester) async {
-    DemoUser? loggedInUser;
+    AppUser? loggedInUser;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -42,7 +42,7 @@ void main() {
   });
 
   testWidgets('register validates and submits', (tester) async {
-    DemoUser? registeredUser;
+    AppUser? registeredUser;
 
     await tester.pumpWidget(
       MaterialApp(

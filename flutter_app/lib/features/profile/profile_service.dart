@@ -6,13 +6,11 @@ class ProfileService {
 
   ProfileService(this._authService);
 
-  Future<DemoUser> updateProfile({
-    required DemoUser user,
+  Future<AppUser> updateProfile({
     required String name,
     required String region,
   }) {
     return _authService.updateProfile(
-      email: user.email,
       name: name,
       region: region,
     );

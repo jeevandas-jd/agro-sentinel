@@ -1,16 +1,16 @@
-class DemoUser {
+class AppUser {
   final String name;
   final String email;
   final String region;
 
-  const DemoUser({
+  const AppUser({
     required this.name,
     required this.email,
     required this.region,
   });
 
-  DemoUser copyWith({String? name, String? email, String? region}) {
-    return DemoUser(
+  AppUser copyWith({String? name, String? email, String? region}) {
+    return AppUser(
       name: name ?? this.name,
       email: email ?? this.email,
       region: region ?? this.region,
@@ -29,8 +29,8 @@ class DemoUser {
     return <String, dynamic>{'name': name, 'email': email, 'region': region};
   }
 
-  factory DemoUser.fromJson(Map<String, dynamic> json) {
-    return DemoUser(
+  factory AppUser.fromJson(Map<String, dynamic> json) {
+    return AppUser(
       name: json['name'] as String? ?? 'Farmer',
       email: json['email'] as String? ?? '',
       region: json['region'] as String? ?? 'Unknown Region',

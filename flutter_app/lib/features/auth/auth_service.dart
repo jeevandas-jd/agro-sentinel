@@ -1,145 +1,172 @@
 import 'dart:async';
 
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 
 import 'auth_models.dart';
 
 class AuthService {
-  static const String _usersStorageKey = 'demo_registered_users';
+  AuthService({
+    firebase_auth.FirebaseAuth? auth,
+    FirebaseFirestore? firestore,
+  })  : _auth = auth ?? firebase_auth.FirebaseAuth.instance,
+        _firestore = firestore ?? FirebaseFirestore.instance;
 
-  Future<DemoUser> login(LoginRequest request) async {
-    await Future<void>.delayed(const Duration(milliseconds: 500));
-    final users = await _loadUsers();
+  final firebase_auth.FirebaseAuth _auth;
+  final FirebaseFirestore _firestore;
 
-    final normalizedEmail = request.email.trim().toLowerCase();
-    if (!users.containsKey(normalizedEmail)) {
-      throw const AuthException('No account found for that email.');
+  Stream<firebase_auth.User?> get authStateChanges => _auth.authStateChanges();
+
+  Future<AppUser> login(LoginRequest request) async {
+    try {
+      final result = await _auth.signInWithEmailAndPassword(
+        email: request.email.trim(),
+        password: request.password,
+      );
+      final user = result.user;
+      if (user == null) {
+        throw const AuthException('Unable to sign in. Please try again.');
+      }
+      return _loadOrCreateProfile(user);
+    } on firebase_auth.FirebaseAuthException catch (error) {
+      throw AuthException(_mapFirebaseError(error));
     }
-
-    final account = users[normalizedEmail]!;
-    if (account.password != request.password) {
-      throw const AuthException('Incorrect password.');
-    }
-
-    return DemoUser(
-      name: account.name,
-      email: normalizedEmail,
-      region: account.region,
-    );
   }
 
-  Future<DemoUser> register(RegisterRequest request) async {
-    await Future<void>.delayed(const Duration(milliseconds: 600));
-    final users = await _loadUsers();
+  Future<AppUser> register(RegisterRequest request) async {
+    try {
+      final result = await _auth.createUserWithEmailAndPassword(
+        email: request.email.trim(),
+        password: request.password,
+      );
+      final user = result.user;
+      if (user == null) {
+        throw const AuthException('Unable to create account. Please try again.');
+      }
 
-    final normalizedEmail = request.email.trim().toLowerCase();
-    if (users.containsKey(normalizedEmail)) {
-      throw const AuthException('An account already exists for this email.');
+      final profile = AppUser(
+        name: request.name.trim(),
+        email: user.email ?? request.email.trim().toLowerCase(),
+        region: request.region.trim(),
+      );
+      await _saveProfile(user.uid, profile);
+      await user.updateDisplayName(profile.name);
+      return profile;
+    } on firebase_auth.FirebaseAuthException catch (error) {
+      throw AuthException(_mapFirebaseError(error));
     }
-
-    users[normalizedEmail] = _StoredUser(
-      name: request.name.trim(),
-      email: normalizedEmail,
-      password: request.password,
-      region: request.region.trim(),
-    );
-    await _saveUsers(users);
-
-    return DemoUser(
-      name: request.name.trim(),
-      email: normalizedEmail,
-      region: request.region.trim(),
-    );
   }
 
-  Future<DemoUser> updateProfile({
-    required String email,
+  Future<AppUser> getCurrentUserProfile() async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw const AuthException('No signed in user found.');
+    }
+    return _loadOrCreateProfile(user);
+  }
+
+  Future<AppUser> updateProfile({
     required String name,
     required String region,
   }) async {
-    final users = await _loadUsers();
-    final normalizedEmail = email.trim().toLowerCase();
-    final existing = users[normalizedEmail];
-    if (existing == null) {
-      throw const AuthException('Account not found for profile update.');
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw const AuthException('No signed in user found.');
     }
-
-    users[normalizedEmail] = _StoredUser(
+    final updated = AppUser(
       name: name.trim(),
-      email: normalizedEmail,
-      password: existing.password,
+      email: user.email ?? '',
       region: region.trim(),
     );
-    await _saveUsers(users);
-
-    return DemoUser(
-      name: name.trim(),
-      email: normalizedEmail,
-      region: region.trim(),
-    );
+    await _saveProfile(user.uid, updated);
+    await user.updateDisplayName(updated.name);
+    return updated;
   }
 
   Future<void> changePassword({
-    required String email,
     required String currentPassword,
     required String newPassword,
   }) async {
-    final users = await _loadUsers();
-    final normalizedEmail = email.trim().toLowerCase();
-    final existing = users[normalizedEmail];
-    if (existing == null) {
-      throw const AuthException('Account not found.');
+    final user = _auth.currentUser;
+    if (user == null || user.email == null) {
+      throw const AuthException('No signed in user found.');
     }
-    if (existing.password != currentPassword) {
-      throw const AuthException('Current password is incorrect.');
+    try {
+      final credential = firebase_auth.EmailAuthProvider.credential(
+        email: user.email!,
+        password: currentPassword,
+      );
+      await user.reauthenticateWithCredential(credential);
+      await user.updatePassword(newPassword);
+    } on firebase_auth.FirebaseAuthException catch (error) {
+      throw AuthException(_mapFirebaseError(error));
     }
-    users[normalizedEmail] = _StoredUser(
-      name: existing.name,
-      email: existing.email,
-      password: newPassword,
-      region: existing.region,
-    );
-    await _saveUsers(users);
   }
 
-  Future<void> deleteAccount(String email) async {
-    final users = await _loadUsers();
-    final normalizedEmail = email.trim().toLowerCase();
-    if (!users.containsKey(normalizedEmail)) {
-      throw const AuthException('Account not found.');
+  Future<void> deleteAccount() async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw const AuthException('No signed in user found.');
     }
-    users.remove(normalizedEmail);
-    await _saveUsers(users);
+    try {
+      await _firestore.collection('users').doc(user.uid).delete();
+      await user.delete();
+    } on firebase_auth.FirebaseAuthException catch (error) {
+      throw AuthException(_mapFirebaseError(error));
+    } on FirebaseException catch (_) {
+      throw const AuthException('Failed to delete account data.');
+    }
   }
 
-  Future<Map<String, _StoredUser>> _loadUsers() async {
-    final prefs = await SharedPreferences.getInstance();
-    final serialized = prefs.getStringList(_usersStorageKey) ?? <String>[];
+  Future<void> signOut() async {
+    await _auth.signOut();
+  }
 
-    final users = <String, _StoredUser>{};
-    for (final row in serialized) {
-      final parsed = _StoredUser.tryParse(row);
-      if (parsed != null) {
-        users[parsed.email] = parsed;
+  Future<AppUser> _loadOrCreateProfile(firebase_auth.User authUser) async {
+    try {
+      final doc = await _firestore.collection('users').doc(authUser.uid).get();
+      if (doc.exists) {
+        final data = doc.data() ?? <String, dynamic>{};
+        return AppUser.fromJson(data);
       }
+      final fallback = AppUser(
+        name: authUser.displayName?.trim().isNotEmpty == true
+            ? authUser.displayName!.trim()
+            : 'Farmer',
+        email: authUser.email ?? '',
+        region: 'Unknown Region',
+      );
+      await _saveProfile(authUser.uid, fallback);
+      return fallback;
+    } on FirebaseException catch (_) {
+      throw const AuthException('Failed to load account details.');
     }
-
-    users.putIfAbsent(
-      'demo@agrisentinel.app',
-      () => const _StoredUser(
-        name: 'Rajan Pillai',
-        email: 'demo@agrisentinel.app',
-        password: 'demo123',
-        region: 'Palakkad District, Kerala',
-      ),
-    );
-    return users;
   }
 
-  Future<void> _saveUsers(Map<String, _StoredUser> users) async {
-    final prefs = await SharedPreferences.getInstance();
-    final serialized = users.values.map((user) => user.serialize()).toList();
-    await prefs.setStringList(_usersStorageKey, serialized);
+  Future<void> _saveProfile(String uid, AppUser user) async {
+    await _firestore.collection('users').doc(uid).set(user.toJson());
+  }
+
+  String _mapFirebaseError(firebase_auth.FirebaseAuthException error) {
+    switch (error.code) {
+      case 'invalid-email':
+        return 'Please enter a valid email address.';
+      case 'user-not-found':
+        return 'No account found for that email.';
+      case 'wrong-password':
+      case 'invalid-credential':
+        return 'Incorrect email or password.';
+      case 'email-already-in-use':
+        return 'An account already exists for this email.';
+      case 'weak-password':
+        return 'Password is too weak. Use at least 6 characters.';
+      case 'requires-recent-login':
+        return 'Please log in again to complete this action.';
+      case 'too-many-requests':
+        return 'Too many attempts. Please try again later.';
+      default:
+        return error.message ?? 'Authentication failed. Please try again.';
+    }
   }
 }
 
@@ -150,33 +177,4 @@ class AuthException implements Exception {
 
   @override
   String toString() => message;
-}
-
-class _StoredUser {
-  final String name;
-  final String email;
-  final String password;
-  final String region;
-
-  const _StoredUser({
-    required this.name,
-    required this.email,
-    required this.password,
-    required this.region,
-  });
-
-  String serialize() => '$name|$email|$password|$region';
-
-  static _StoredUser? tryParse(String value) {
-    final parts = value.split('|');
-    if (parts.length != 4) {
-      return null;
-    }
-    return _StoredUser(
-      name: parts[0],
-      email: parts[1],
-      password: parts[2],
-      region: parts[3],
-    );
-  }
 }

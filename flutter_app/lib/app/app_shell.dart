@@ -13,9 +13,9 @@ import '../screens/dashboard_screen.dart';
 import '../theme/app_theme.dart';
 
 class AppShell extends StatefulWidget {
-  final DemoUser user;
+  final AppUser user;
   final AuthService authService;
-  final Future<void> Function(DemoUser user) onUserUpdated;
+  final Future<void> Function(AppUser user) onUserUpdated;
   final Future<void> Function() onLogout;
 
   const AppShell({
@@ -61,13 +61,12 @@ class _AppShellState extends State<AppShell> with SingleTickerProviderStateMixin
         builder: (_) => SettingsPage(
           onChangePassword: (currentPassword, newPassword) {
             return widget.authService.changePassword(
-              email: widget.user.email,
               currentPassword: currentPassword,
               newPassword: newPassword,
             );
           },
           onDeleteAccount: () async {
-            await widget.authService.deleteAccount(widget.user.email);
+            await widget.authService.deleteAccount();
             await widget.onLogout();
           },
         ),

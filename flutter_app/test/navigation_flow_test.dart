@@ -12,7 +12,7 @@ void main() {
   });
 
   testWidgets('bottom navigation switches between major pages', (tester) async {
-    final user = const DemoUser(
+    final user = const AppUser(
       name: 'Rajan Pillai',
       email: 'demo@agrisentinel.app',
       region: 'Palakkad District, Kerala',

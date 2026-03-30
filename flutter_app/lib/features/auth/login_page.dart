@@ -9,7 +9,7 @@ import 'auth_validators.dart';
 
 class LoginPage extends StatefulWidget {
   final AuthService authService;
-  final Future<void> Function(DemoUser user) onLoggedIn;
+  final Future<void> Function(AppUser user) onLoggedIn;
   final VoidCallback onRegisterTap;
 
   const LoginPage({
@@ -243,25 +243,7 @@ class _LoginPageState extends State<LoginPage>
                                       child:
                                           const Text('Create account'),
                                     ),
-                                    const SizedBox(height: AppSpacing.x4),
-                                    Container(
-                                      padding: const EdgeInsets.all(
-                                          AppSpacing.x3),
-                                      decoration: BoxDecoration(
-                                        color: AppColors.oliveLight,
-                                        borderRadius: BorderRadius.circular(
-                                            AppRadii.s),
-                                      ),
-                                      child: const Text(
-                                        '🌱  Demo: demo@agrisentinel.app / demo123',
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          color: AppColors.primaryDark,
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ),
+                                    const SizedBox(height: AppSpacing.x2),
                                   ],
                                 ),
                               ),

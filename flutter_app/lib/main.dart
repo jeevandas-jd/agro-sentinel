@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'app/app_router.dart';
-import 'app/session_state.dart';
+import 'firebase_options.dart';
 import 'theme/app_theme.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setPreferredOrientations([
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
   ]);
   SystemChrome.setSystemUIOverlayStyle(
@@ -25,12 +29,11 @@ class AgriSentinelApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sessionState = SessionState();
     return MaterialApp(
       title: 'AgriSentinel',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.theme,
-      home: AppRouter(sessionState: sessionState),
+      home: const AppRouter(),
     );
   }
 }

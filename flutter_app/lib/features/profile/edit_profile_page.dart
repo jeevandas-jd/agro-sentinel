@@ -5,7 +5,7 @@ import '../auth/auth_models.dart';
 import '../auth/auth_validators.dart';
 
 class EditProfilePage extends StatefulWidget {
-  final DemoUser user;
+  final AppUser user;
 
   const EditProfilePage({super.key, required this.user});
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 
 import '../features/auth/auth_models.dart';
 import '../features/auth/auth_service.dart';
@@ -6,12 +7,9 @@ import '../features/auth/login_page.dart';
 import '../features/auth/register_page.dart';
 import '../screens/splash_screen.dart';
 import 'app_shell.dart';
-import 'session_state.dart';
 
 class AppRouter extends StatefulWidget {
-  final SessionState sessionState;
-
-  const AppRouter({super.key, required this.sessionState});
+  const AppRouter({super.key});
 
   @override
   State<AppRouter> createState() => _AppRouterState();
@@ -29,8 +27,13 @@ class _AppRouterState extends State<AppRouter> {
   }
 
   Future<void> _bootstrap() async {
-    await widget.sessionState.initialize();
-    await Future<void>.delayed(const Duration(milliseconds: 1500));
+    const minSplashDuration = Duration(milliseconds: 4200);
+    final splashStartedAt = DateTime.now();
+    final elapsed = DateTime.now().difference(splashStartedAt);
+    if (elapsed < minSplashDuration) {
+      await Future<void>.delayed(minSplashDuration - elapsed);
+    }
+
     if (!mounted) {
       return;
     }
@@ -39,16 +42,8 @@ class _AppRouterState extends State<AppRouter> {
     });
   }
 
-  Future<void> _onAuthenticated(DemoUser user) async {
-    await widget.sessionState.setSession(user);
-  }
-
-  Future<void> _onUserUpdated(DemoUser user) async {
-    await widget.sessionState.updateCurrentUser(user);
-  }
-
   Future<void> _onLogout() async {
-    await widget.sessionState.clearSession();
+    await _authService.signOut();
     if (!mounted) {
       return;
     }
@@ -63,37 +58,73 @@ class _AppRouterState extends State<AppRouter> {
       return const SplashScreen(standaloneMode: true);
     }
 
-    return AnimatedBuilder(
-      animation: widget.sessionState,
-      builder: (context, _) {
-        if (widget.sessionState.isAuthenticated) {
-          return AppShell(
-            user: widget.sessionState.currentUser!,
-            authService: _authService,
-            onUserUpdated: _onUserUpdated,
-            onLogout: _onLogout,
+    return StreamBuilder<firebase_auth.User?>(
+      stream: _authService.authStateChanges,
+      builder: (context, authSnapshot) {
+        final firebaseUser = authSnapshot.data;
+        if (firebaseUser != null) {
+          return FutureBuilder<AppUser>(
+            future: _authService.getCurrentUserProfile(),
+            builder: (context, profileSnapshot) {
+              if (profileSnapshot.connectionState == ConnectionState.waiting) {
+                return const Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                );
+              }
+              if (profileSnapshot.hasError || !profileSnapshot.hasData) {
+                return Scaffold(
+                  body: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Text(
+                        profileSnapshot.error?.toString() ??
+                            'Failed to load account details.',
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                );
+              }
+              return AppShell(
+                user: profileSnapshot.data!,
+                authService: _authService,
+                onUserUpdated: (_) async {
+                  if (!mounted) {
+                    return;
+                  }
+                  setState(() {});
+                },
+                onLogout: _onLogout,
+              );
+            },
           );
         }
 
         if (_showRegister) {
           return RegisterPage(
             authService: _authService,
-            onRegistered: _onAuthenticated,
+            onRegistered: (_) async {
+              if (!mounted) {
+                return;
+              }
+              setState(() => _showRegister = false);
+            },
             onLoginTap: () {
-              setState(() {
-                _showRegister = false;
-              });
+              setState(() => _showRegister = false);
             },
           );
         }
 
         return LoginPage(
           authService: _authService,
-          onLoggedIn: _onAuthenticated,
+          onLoggedIn: (_) async {
+            if (!mounted) {
+              return;
+            }
+            setState(() => _showRegister = false);
+          },
           onRegisterTap: () {
-            setState(() {
-              _showRegister = true;
-            });
+            setState(() => _showRegister = true);
           },
         );
       },
