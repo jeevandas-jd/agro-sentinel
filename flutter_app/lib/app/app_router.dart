@@ -5,57 +5,42 @@ import '../features/auth/auth_models.dart';
 import '../features/auth/auth_service.dart';
 import '../features/auth/login_page.dart';
 import '../features/auth/register_page.dart';
+import '../screens/home_screen.dart';
 import '../screens/splash_screen.dart';
-import 'app_shell.dart';
+import '../services/report_demo_repository.dart';
 
 class AppRouter extends StatefulWidget {
-  const AppRouter({super.key});
+  final AuthService? authService;
+
+  const AppRouter({super.key, this.authService});
 
   @override
   State<AppRouter> createState() => _AppRouterState();
 }
 
 class _AppRouterState extends State<AppRouter> {
-  final AuthService _authService = AuthService();
+  late final AuthService _authService;
+  bool _showSplash = true;
   bool _showRegister = false;
-  bool _ready = false;
 
   @override
   void initState() {
     super.initState();
-    _bootstrap();
-  }
-
-  Future<void> _bootstrap() async {
-    const minSplashDuration = Duration(milliseconds: 4200);
-    final splashStartedAt = DateTime.now();
-    final elapsed = DateTime.now().difference(splashStartedAt);
-    if (elapsed < minSplashDuration) {
-      await Future<void>.delayed(minSplashDuration - elapsed);
-    }
-
-    if (!mounted) {
-      return;
-    }
-    setState(() {
-      _ready = true;
-    });
-  }
-
-  Future<void> _onLogout() async {
-    await _authService.signOut();
-    if (!mounted) {
-      return;
-    }
-    setState(() {
-      _showRegister = false;
-    });
+    _authService = widget.authService ?? AuthService();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!_ready) {
-      return const SplashScreen(standaloneMode: true);
+    if (_showSplash) {
+      return SplashScreen(
+        authService: _authService,
+        onFinished: (_) {
+          if (!mounted) {
+            return;
+          }
+          setState(() => _showSplash = false);
+        },
+      );
     }
 
     return StreamBuilder<firebase_auth.User?>(
@@ -63,6 +48,13 @@ class _AppRouterState extends State<AppRouter> {
       builder: (context, authSnapshot) {
         final firebaseUser = authSnapshot.data;
         if (firebaseUser != null) {
+          if (_showRegister) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                setState(() => _showRegister = false);
+              }
+            });
+          }
           return FutureBuilder<AppUser>(
             future: _authService.getCurrentUserProfile(),
             builder: (context, profileSnapshot) {
@@ -85,16 +77,22 @@ class _AppRouterState extends State<AppRouter> {
                   ),
                 );
               }
-              return AppShell(
-                user: profileSnapshot.data!,
+              final AppUser user = profileSnapshot.data!;
+              final farmer = ReportDemoRepository.farmerFor(
+                uid: firebaseUser.uid,
+                displayName: user.name,
+                email: user.email,
+              );
+              final farm = ReportDemoRepository.farmFor(farmer.uid);
+              final events = ReportDemoRepository.eventsFor(
+                farmerUid: farmer.uid,
+                farmId: farm.id,
+              );
+              return HomeScreen(
+                farmer: farmer,
+                farm: farm,
+                events: events,
                 authService: _authService,
-                onUserUpdated: (_) async {
-                  if (!mounted) {
-                    return;
-                  }
-                  setState(() {});
-                },
-                onLogout: _onLogout,
               );
             },
           );
@@ -104,10 +102,9 @@ class _AppRouterState extends State<AppRouter> {
           return RegisterPage(
             authService: _authService,
             onRegistered: (_) async {
-              if (!mounted) {
-                return;
+              if (mounted) {
+                setState(() {});
               }
-              setState(() => _showRegister = false);
             },
             onLoginTap: () {
               setState(() => _showRegister = false);
@@ -115,13 +112,10 @@ class _AppRouterState extends State<AppRouter> {
           );
         }
 
-        return LoginPage(
+        return LoginScreen(
           authService: _authService,
           onLoggedIn: (_) async {
-            if (!mounted) {
-              return;
-            }
-            setState(() => _showRegister = false);
+            setState(() {});
           },
           onRegisterTap: () {
             setState(() => _showRegister = true);

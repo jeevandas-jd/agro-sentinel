@@ -65,9 +65,9 @@ class _DashboardScreenState extends State<DashboardScreen>
   void _openHotspot(Hotspot hotspot) {
     Navigator.of(context).push(
       PageRouteBuilder(
-        pageBuilder: (_, animation, __) =>
+        pageBuilder: (_, animation, _) =>
             NavigationScreen(hotspot: hotspot),
-        transitionsBuilder: (_, animation, __, child) {
+        transitionsBuilder: (_, animation, _, child) {
           return SlideTransition(
             position: Tween<Offset>(
               begin: const Offset(1, 0),

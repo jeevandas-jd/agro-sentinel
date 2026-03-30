@@ -1,93 +1,49 @@
 import 'package:flutter/material.dart';
 
 import '../../theme/app_theme.dart';
-import '../../widgets/app_primary_button.dart';
-import '../../widgets/app_text_field.dart';
 import 'auth_models.dart';
 import 'auth_service.dart';
-import 'auth_validators.dart';
 
-class LoginPage extends StatefulWidget {
+class LoginScreen extends StatefulWidget {
   final AuthService authService;
   final Future<void> Function(AppUser user) onLoggedIn;
-  final VoidCallback onRegisterTap;
+  final VoidCallback? onRegisterTap;
 
-  const LoginPage({
+  const LoginScreen({
     super.key,
     required this.authService,
     required this.onLoggedIn,
-    required this.onRegisterTap,
+    this.onRegisterTap,
   });
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginPageState extends State<LoginPage>
-    with SingleTickerProviderStateMixin {
+class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
   bool _isSubmitting = false;
 
-  late AnimationController _entryController;
-  late Animation<double> _logoScale;
-  late Animation<double> _formFade;
-  late Animation<Offset> _formSlide;
-
-  @override
-  void initState() {
-    super.initState();
-    _entryController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 900),
-    )..forward();
-
-    _logoScale = Tween<double>(begin: 0.5, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _entryController,
-        curve: const Interval(0.0, 0.5, curve: Curves.elasticOut),
-      ),
-    );
-    _formFade = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(
-        parent: _entryController,
-        curve: const Interval(0.3, 1.0, curve: Curves.easeOut),
-      ),
-    );
-    _formSlide = Tween<Offset>(
-      begin: const Offset(0, 0.2),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _entryController,
-        curve: const Interval(0.3, 1.0, curve: Curves.easeOutCubic),
-      ),
-    );
-  }
-
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
-    _entryController.dispose();
     super.dispose();
   }
 
   Future<void> _submit() async {
-    if (!(_formKey.currentState?.validate() ?? false) || _isSubmitting) {
+    if (_isSubmitting || !(_formKey.currentState?.validate() ?? false)) {
       return;
     }
 
-    setState(() {
-      _isSubmitting = true;
-    });
-
+    setState(() => _isSubmitting = true);
     try {
       final user = await widget.authService.login(
         LoginRequest(
-          email: _emailController.text,
+          email: _emailController.text.trim(),
           password: _passwordController.text,
         ),
       );
@@ -96,14 +52,12 @@ class _LoginPageState extends State<LoginPage>
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(error.message)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.message)),
+      );
     } finally {
       if (mounted) {
-        setState(() {
-          _isSubmitting = false;
-        });
+        setState(() => _isSubmitting = false);
       }
     }
   }
@@ -111,154 +65,138 @@ class _LoginPageState extends State<LoginPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Stack(
-        children: [
-          // Top green accent blob
-          Positioned(
-            top: -60,
-            right: -40,
-            child: Container(
-              width: 220,
-              height: 220,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.primaryLight.withValues(alpha: 0.30),
-              ),
-            ),
-          ),
-          SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(AppSpacing.x5),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 420),
-                  child: Column(
-                    children: [
-                      // Logo
-                      ScaleTransition(
-                        scale: _logoScale,
-                        child: Container(
-                          width: 72,
-                          height: 72,
-                          decoration: BoxDecoration(
-                            color: AppColors.primary,
-                            shape: BoxShape.circle,
-                            boxShadow: AppShadows.raised,
-                          ),
-                          child: const Icon(
-                            Icons.eco_rounded,
-                            color: Colors.white,
-                            size: 36,
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: AppSpacing.x5),
-
-                      // Form card
-                      FadeTransition(
-                        opacity: _formFade,
-                        child: SlideTransition(
-                          position: _formSlide,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: AppColors.surface,
-                              borderRadius: BorderRadius.circular(AppRadii.xl),
-                              boxShadow: AppShadows.card,
-                              border: Border.all(color: AppColors.border),
+      backgroundColor: const Color(0xFF0D1F0F),
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(AppSpacing.x5),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: Column(
+                children: [
+                  const Icon(Icons.eco, color: Colors.white, size: 56),
+                  const SizedBox(height: AppSpacing.x2),
+                  const Text(
+                    'AGRO SENTINEL',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.x6),
+                  Container(
+                    padding: const EdgeInsets.all(AppSpacing.x6),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(AppRadii.xl),
+                    ),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          TextFormField(
+                            controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            decoration: const InputDecoration(
+                              labelText: 'Email',
+                              hintText: 'name@example.com',
                             ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(AppSpacing.x6),
-                              child: Form(
-                                key: _formKey,
-                                child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: [
-                                    const Text(
-                                      'Welcome back',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        color: AppColors.textPrimary,
-                                        fontSize: 26,
-                                        fontWeight: FontWeight.w800,
-                                        letterSpacing: -0.4,
-                                      ),
-                                    ),
-                                    const SizedBox(height: AppSpacing.x1),
-                                    const Text(
-                                      'Sign in to continue',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        color: AppColors.textMuted,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                    const SizedBox(height: AppSpacing.x6),
-                                    AppTextField(
-                                      controller: _emailController,
-                                      label: 'Email',
-                                      icon: Icons.email_outlined,
-                                      hintText: 'name@example.com',
-                                      keyboardType:
-                                          TextInputType.emailAddress,
-                                      validator: AuthValidators.email,
-                                    ),
-                                    const SizedBox(height: AppSpacing.x3),
-                                    AppTextField(
-                                      controller: _passwordController,
-                                      label: 'Password',
-                                      icon: Icons.lock_outline,
-                                      obscureText: _obscurePassword,
-                                      validator: AuthValidators.password,
-                                      suffixIcon: IconButton(
-                                        onPressed: () {
-                                          setState(() {
-                                            _obscurePassword =
-                                                !_obscurePassword;
-                                          });
-                                        },
-                                        icon: Icon(
-                                          _obscurePassword
-                                              ? Icons.visibility_off_outlined
-                                              : Icons.visibility_outlined,
-                                          color: AppColors.textMuted,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(height: AppSpacing.x6),
-                                    AppPrimaryButton(
-                                      onPressed:
-                                          _isSubmitting ? null : _submit,
-                                      isLoading: _isSubmitting,
-                                      label: 'Login',
-                                      icon: Icons.login_rounded,
-                                    ),
-                                    const SizedBox(height: AppSpacing.x3),
-                                    OutlinedButton(
-                                      onPressed: _isSubmitting
-                                          ? null
-                                          : widget.onRegisterTap,
-                                      child:
-                                          const Text('Create account'),
-                                    ),
-                                    const SizedBox(height: AppSpacing.x2),
-                                  ],
+                            validator: (value) {
+                              final email = value?.trim() ?? '';
+                              if (email.isEmpty) {
+                                return 'Please enter your email.';
+                              }
+                              if (!email.contains('@')) {
+                                return 'Enter a valid email address.';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: AppSpacing.x3),
+                          TextFormField(
+                            controller: _passwordController,
+                            obscureText: _obscurePassword,
+                            decoration: InputDecoration(
+                              labelText: 'Password',
+                              suffixIcon: IconButton(
+                                onPressed: () {
+                                  setState(() {
+                                    _obscurePassword = !_obscurePassword;
+                                  });
+                                },
+                                icon: Icon(
+                                  _obscurePassword
+                                      ? Icons.visibility_off_outlined
+                                      : Icons.visibility_outlined,
                                 ),
                               ),
                             ),
+                            validator: (value) {
+                              if ((value ?? '').isEmpty) {
+                                return 'Please enter your password.';
+                              }
+                              return null;
+                            },
                           ),
+                          const SizedBox(height: AppSpacing.x6),
+                          SizedBox(
+                            height: 50,
+                            child: ElevatedButton(
+                              onPressed: _isSubmitting ? null : _submit,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: _isSubmitting
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2.4,
+                                      ),
+                                    )
+                                  : const Text('Login'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.x4),
+                  if (widget.onRegisterTap != null) ...[
+                    TextButton(
+                      onPressed: _isSubmitting ? null : widget.onRegisterTap,
+                      child: const Text(
+                        'Create an account',
+                        style: TextStyle(
+                          color: AppColors.primaryLight,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
-                    ],
+                    ),
+                    const SizedBox(height: AppSpacing.x2),
+                  ],
+                  const Text(
+                    'Agro Sentinel v1.0 — Gradient Descent',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 12,
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }
 }
+
+typedef LoginPage = LoginScreen;

@@ -1,10 +1,10 @@
 import 'package:agrisentinel/app/app_shell.dart';
 import 'package:agrisentinel/features/auth/auth_models.dart';
-import 'package:agrisentinel/features/auth/auth_service.dart';
 import 'package:agrisentinel/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'test_auth_service.dart';
 
 void main() {
   setUp(() {
@@ -23,7 +23,7 @@ void main() {
         theme: AppTheme.theme,
         home: AppShell(
           user: user,
-          authService: AuthService(),
+          authService: buildTestAuthService(),
           onUserUpdated: (_) async {},
           onLogout: () async {},
         ),
@@ -37,7 +37,7 @@ void main() {
 
     await tester.tap(find.text('Profile'));
     await tester.pump(const Duration(milliseconds: 500));
-    expect(find.text('Edit profile'), findsOneWidget);
+    expect(find.text('Edit Profile'), findsOneWidget);
 
     await tester.tap(find.text('More'));
     await tester.pump(const Duration(milliseconds: 500));

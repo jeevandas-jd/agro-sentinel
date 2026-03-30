@@ -1,10 +1,10 @@
 import 'package:agrisentinel/app/app_shell.dart';
 import 'package:agrisentinel/features/auth/auth_models.dart';
-import 'package:agrisentinel/features/auth/auth_service.dart';
 import 'package:agrisentinel/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'test_auth_service.dart';
 
 void main() {
   setUp(() {
@@ -28,8 +28,13 @@ void main() {
     await tester.tap(find.text('Profile'));
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.text('Rajan Pillai'), findsOneWidget);
-    expect(find.text('Edit profile'), findsOneWidget);
-    await tester.tap(find.text('Logout'));
+    expect(find.text('Edit Profile'), findsOneWidget);
+    final logoutFinder = find.text('Logout');
+    if (logoutFinder.evaluate().isEmpty) {
+      await tester.fling(find.byType(Scrollable).first, const Offset(0, -600), 1000);
+      await tester.pumpAndSettle(const Duration(milliseconds: 400));
+    }
+    await tester.tap(logoutFinder);
     await tester.pump(const Duration(milliseconds: 400));
     expect(loggedOut, isTrue);
   });
@@ -55,7 +60,7 @@ class _ProfileHostState extends State<_ProfileHost> {
   Widget build(BuildContext context) {
     return AppShell(
       user: _user,
-      authService: AuthService(),
+      authService: buildTestAuthService(),
       onUserUpdated: (user) async {
         setState(() => _user = user);
       },

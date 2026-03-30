@@ -16,6 +16,7 @@ class AuthService {
   final FirebaseFirestore _firestore;
 
   Stream<firebase_auth.User?> get authStateChanges => _auth.authStateChanges();
+  firebase_auth.User? get currentUser => _auth.currentUser;
 
   Future<AppUser> login(LoginRequest request) async {
     try {

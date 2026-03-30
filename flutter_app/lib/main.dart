@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'features/auth/auth_service.dart';
 import 'app/app_router.dart';
 import 'firebase_options.dart';
 import 'theme/app_theme.dart';
@@ -25,7 +26,9 @@ Future<void> main() async {
 }
 
 class AgriSentinelApp extends StatelessWidget {
-  const AgriSentinelApp({super.key});
+  final AuthService? authService;
+
+  const AgriSentinelApp({super.key, this.authService});
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +36,7 @@ class AgriSentinelApp extends StatelessWidget {
       title: 'AgriSentinel',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.theme,
-      home: const AppRouter(),
+      home: AppRouter(authService: authService),
     );
   }
 }

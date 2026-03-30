@@ -1,11 +1,13 @@
 import 'package:agrisentinel/features/auth/auth_models.dart';
-import 'package:agrisentinel/features/auth/auth_service.dart';
 import 'package:agrisentinel/features/auth/login_page.dart';
 import 'package:agrisentinel/features/auth/register_page.dart';
 import 'package:agrisentinel/theme/app_theme.dart';
+import 'package:agrisentinel/widgets/app_primary_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'test_auth_service.dart';
 
 void main() {
   setUp(() {
@@ -14,16 +16,16 @@ void main() {
 
   testWidgets('login succeeds with demo credentials', (tester) async {
     AppUser? loggedInUser;
+    final authService = buildTestAuthService();
 
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.theme,
         home: LoginPage(
-          authService: AuthService(),
+          authService: authService,
           onLoggedIn: (user) async {
             loggedInUser = user;
           },
-          onRegisterTap: () {},
         ),
       ),
     );
@@ -43,12 +45,13 @@ void main() {
 
   testWidgets('register validates and submits', (tester) async {
     AppUser? registeredUser;
+    final authService = buildTestAuthService();
 
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.theme,
         home: RegisterPage(
-          authService: AuthService(),
+          authService: authService,
           onRegistered: (user) async {
             registeredUser = user;
           },
@@ -66,9 +69,12 @@ void main() {
     await tester.enterText(find.byType(TextFormField).at(2), 'test@farm.app');
     await tester.enterText(find.byType(TextFormField).at(3), 'secret12');
     await tester.enterText(find.byType(TextFormField).at(4), 'secret12');
-    await tester.tap(find.text('Register'));
+
+    final registerButton = find.widgetWithText(AppPrimaryButton, 'Register');
+    await tester.ensureVisible(registerButton.first);
+    await tester.tap(registerButton.first);
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 800));
+    await tester.pumpAndSettle(const Duration(seconds: 1));
 
     expect(registeredUser, isNotNull);
     expect(registeredUser!.name, 'Test Farmer');

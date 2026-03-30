@@ -163,27 +163,34 @@ class _RegisterPageState extends State<RegisterPage>
                                       ),
                                     ),
                                     const SizedBox(width: 12),
-                                    const Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Create account',
-                                          style: TextStyle(
-                                            color: AppColors.textPrimary,
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.w800,
-                                            letterSpacing: -0.3,
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Create account',
+                                            style: const TextStyle(
+                                              color: AppColors.textPrimary,
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.w800,
+                                              letterSpacing: -0.3,
+                                            ),
+                                            maxLines: 2,
+                                            softWrap: true,
                                           ),
-                                        ),
-                                        Text(
-                                          'Set up your AgriSentinel profile',
-                                          style: TextStyle(
-                                            color: AppColors.textMuted,
-                                            fontSize: 12,
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            'Set up your AgriSentinel profile',
+                                            style: const TextStyle(
+                                              color: AppColors.textMuted,
+                                              fontSize: 12,
+                                            ),
+                                            maxLines: 2,
+                                            softWrap: true,
                                           ),
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
                                   ],
                                 ),
