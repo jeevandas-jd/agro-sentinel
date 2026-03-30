@@ -1,8 +1,8 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
 
+import '../core/utils/map_marker_utils.dart';
 import '../models/disaster_event_model.dart';
 import '../models/farm_model.dart';
 import '../models/farmer_model.dart';
@@ -28,16 +28,36 @@ class HotspotMapScreen extends StatefulWidget {
 }
 
 class _HotspotMapScreenState extends State<HotspotMapScreen> {
-  bool _tapMode = true;
   late List<HotspotModel> _hotspots;
+  gmaps.BitmapDescriptor? _hotspotIcon;
+  gmaps.BitmapDescriptor? _visitedHotspotIcon;
 
   @override
   void initState() {
     super.initState();
     _hotspots = List<HotspotModel>.from(widget.initialEvent.hotspots);
+    _loadMarkerIcons();
   }
 
-  void _addHotspot(double lat, double lng) {
+  Future<void> _loadMarkerIcons() async {
+    final hotspotIcon = await bitmapDescriptorFromIcon(
+      Icons.place,
+      AppColors.hotspotMarkerColor,
+      size: 72,
+    );
+    final visitedIcon = await bitmapDescriptorFromIcon(
+      Icons.place,
+      AppColors.visitedHotspotColor,
+      size: 72,
+    );
+    if (!mounted) return;
+    setState(() {
+      _hotspotIcon = hotspotIcon;
+      _visitedHotspotIcon = visitedIcon;
+    });
+  }
+
+  HotspotModel _addHotspot(double lat, double lng) {
     final hotspot = HotspotModel(
       id: '${_hotspots.length + 1}',
       latitude: lat,
@@ -46,18 +66,35 @@ class _HotspotMapScreenState extends State<HotspotMapScreen> {
       capturedAt: DateTime.now(),
     );
     setState(() => _hotspots = [..._hotspots, hotspot]);
+    return hotspot;
   }
 
-  void _addHotspotFromCanvasTap(Offset localPosition, Size size) {
-    if (size.width <= 0 || size.height <= 0) {
-      _addHotspot(widget.farm.center.latitude, widget.farm.center.longitude);
-      return;
-    }
-    final dx = (localPosition.dx / size.width) - 0.5;
-    final dy = (localPosition.dy / size.height) - 0.5;
-    final lat = widget.farm.center.latitude - (dy * 0.003);
-    final lng = widget.farm.center.longitude + (dx * 0.003);
-    _addHotspot(lat, lng);
+  Future<void> _confirmAndAddHotspot(gmaps.LatLng pos) async {
+    final shouldAdd = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Mark this as damaged area?'),
+          content: Text(
+            'Lat: ${pos.latitude.toStringAsFixed(6)}\nLng: ${pos.longitude.toStringAsFixed(6)}',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('No'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Yes'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (!mounted || shouldAdd != true) return;
+    final hotspot = _addHotspot(pos.latitude, pos.longitude);
+    await _openCapture(hotspot);
   }
 
   Future<void> _useGps() async {
@@ -73,11 +110,13 @@ class _HotspotMapScreenState extends State<HotspotMapScreen> {
       if (!mounted) {
         return;
       }
-      _addHotspot(position.latitude, position.longitude);
+      final hotspot = _addHotspot(position.latitude, position.longitude);
+      await _openCapture(hotspot);
       return;
     }
 
-    _addHotspot(widget.farm.center.latitude, widget.farm.center.longitude);
+    final hotspot = _addHotspot(widget.farm.center.latitude, widget.farm.center.longitude);
+    await _openCapture(hotspot);
   }
 
   Future<void> _openCapture(HotspotModel hotspot) async {
@@ -132,9 +171,13 @@ class _HotspotMapScreenState extends State<HotspotMapScreen> {
           (hotspot) => gmaps.Marker(
             markerId: gmaps.MarkerId(hotspot.id),
             position: gmaps.LatLng(hotspot.latitude, hotspot.longitude),
-            icon: gmaps.BitmapDescriptor.defaultMarkerWithHue(
-              gmaps.BitmapDescriptor.hueRed,
-            ),
+            icon: hotspot.hasAnalysedPhoto
+                ? (_visitedHotspotIcon ?? gmaps.BitmapDescriptor.defaultMarkerWithHue(
+                    gmaps.BitmapDescriptor.hueGreen,
+                  ))
+                : (_hotspotIcon ?? gmaps.BitmapDescriptor.defaultMarkerWithHue(
+                    gmaps.BitmapDescriptor.hueRed,
+                  )),
             infoWindow: gmaps.InfoWindow(title: 'Hotspot ${hotspot.id}'),
           ),
         )
@@ -145,47 +188,15 @@ class _HotspotMapScreenState extends State<HotspotMapScreen> {
       body: Stack(
         children: [
           Positioned.fill(
-            child: kIsWeb
-                ? LayoutBuilder(
-                    builder: (context, constraints) {
-                      final size = Size(constraints.maxWidth, constraints.maxHeight);
-                      return GestureDetector(
-                        onTapDown: (details) {
-                          if (_tapMode) {
-                            _addHotspotFromCanvasTap(details.localPosition, size);
-                          }
-                        },
-                        child: Container(
-                          color: const Color(0xFFE7EFE0),
-                          alignment: Alignment.center,
-                          child: const Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.map_outlined, size: 64, color: AppColors.primaryDark),
-                              SizedBox(height: 8),
-                              Text('Web demo map canvas'),
-                              SizedBox(height: 4),
-                              Text('Tap to add hotspot when tap mode is on'),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  )
-                : gmaps.GoogleMap(
-                    initialCameraPosition: gmaps.CameraPosition(
-                      target:
-                          gmaps.LatLng(widget.farm.center.latitude, widget.farm.center.longitude),
-                      zoom: 16,
-                    ),
-                    myLocationEnabled: true,
-                    onTap: (pos) {
-                      if (_tapMode) {
-                        _addHotspot(pos.latitude, pos.longitude);
-                      }
-                    },
-                    markers: markers,
-                  ),
+            child: gmaps.GoogleMap(
+              initialCameraPosition: gmaps.CameraPosition(
+                target: gmaps.LatLng(widget.farm.center.latitude, widget.farm.center.longitude),
+                zoom: 16,
+              ),
+              myLocationEnabled: true,
+              onLongPress: _confirmAndAddHotspot,
+              markers: markers,
+            ),
           ),
           Positioned(
             top: 12,
@@ -220,10 +231,8 @@ class _HotspotMapScreenState extends State<HotspotMapScreen> {
                       children: [
                         Expanded(
                           child: OutlinedButton(
-                            onPressed: () => setState(() => _tapMode = !_tapMode),
-                            child: Text(
-                              _tapMode ? 'Tap Mode: ON' : 'Tap Location on Map',
-                            ),
+                            onPressed: _hotspots.isEmpty ? null : () => setState(() => _hotspots = []),
+                            child: const Text('Clear Hotspots'),
                           ),
                         ),
                         const SizedBox(width: 8),

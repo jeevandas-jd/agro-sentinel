@@ -31,6 +31,11 @@ class AppColors {
   static const Color alertLow = Color(0xFFFBBF24);
   static const Color alertVerified = Color(0xFF3B82F6);
 
+  // Map
+  static const Color farmBoundaryColor = Color(0xFF2D6A4F); // dark green
+  static const Color hotspotMarkerColor = Color(0xFFE24B4A); // red
+  static const Color visitedHotspotColor = Color(0xFF52B788); // light green
+
   // Misc
   static const Color border = Color(0xFFE5EADC);
   static const Color borderStrong = Color(0xFFCDD8BC);
