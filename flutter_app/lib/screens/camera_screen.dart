@@ -7,6 +7,7 @@ import '../theme/app_theme.dart';
 import '../widgets/damage_gauge.dart';
 import '../widgets/glass_panel.dart';
 import 'claim_screen.dart';
+import '../services/inference_service.dart';
 
 class CameraScreen extends StatefulWidget {
   final Hotspot hotspot;
@@ -36,7 +37,8 @@ class _CameraScreenState extends State<CameraScreen>
   bool _isCapturing = false;
   bool _analysisComplete = false;
   double _currentDamage = 0.0;
-  static const double _targetDamage = 67.4;
+  //static const double _targetDamage = 67.4;
+  double _realDamage = 0.0;
   DateTime _captureTime = DateTime.now();
 
   @override
@@ -69,12 +71,15 @@ class _CameraScreenState extends State<CameraScreen>
       vsync: this,
       duration: const Duration(milliseconds: 1400),
     );
+
+    // ✅ Start with a 0→0 animation; it will be rebuilt with the real
+    //    target after inference completes.
     _damageAnimation =
-        Tween<double>(begin: 0.0, end: _targetDamage).animate(
+        Tween<double>(begin: 0.0, end: 0.0).animate(
           CurvedAnimation(parent: _damageController, curve: Curves.easeOut),
-        )..addListener(() {
-          setState(() => _currentDamage = _damageAnimation.value);
-        });
+        )..addListener(
+          () => setState(() => _currentDamage = _damageAnimation.value),
+        );
   }
 
   Future<void> _initCamera() async {
@@ -103,28 +108,60 @@ class _CameraScreenState extends State<CameraScreen>
 
   Future<void> _captureAndAnalyse() async {
     if (_isCapturing) return;
+
     setState(() {
       _isCapturing = true;
       _captureTime = DateTime.now();
     });
 
-    // Take real photo on native; on web camera_web returns a blob path
-    if (_cameraReady && _cameraController != null) {
+    // ✅ Only attempt camera capture on native platforms
+    if (!kIsWeb && _cameraReady && _cameraController != null) {
       try {
         final XFile photo = await _cameraController!.takePicture();
-        if (!kIsWeb) _capturedImagePath = photo.path;
-      } catch (_) {
-        // swallow — analysis still runs with demo data
-      }
+        _capturedImagePath = photo.path;
+      } catch (_) {}
     }
 
-    // Run scanning animation for 3 seconds
     _scanController.repeat();
-    await Future.delayed(const Duration(milliseconds: 3200));
+
+    // ✅ Guard: only run real inference if we actually have an image file
+    double result = 0.0;
+    if (!kIsWeb && _capturedImagePath != null) {
+      try {
+        final inferenceService = InferenceService();
+        await inferenceService.loadModel();
+        final output = await inferenceService.classify(
+          File(_capturedImagePath!),
+        );
+        result = output['label'] == 'damaged'
+            ? (output['confidence'] as double) * 100
+            : 0.0;
+      } catch (e) {
+        debugPrint('Inference error: $e');
+        // Fall through with result = 0.0 (or use a demo value on error)
+        result = 0.0;
+      }
+    } else {
+      // ✅ Web / no image: demo value so the UI still runs
+      await Future.delayed(const Duration(milliseconds: 1800));
+      result = 42.0;
+    }
+
     if (!mounted) return;
     _scanController.stop();
 
+    // ✅ Rebuild the Tween with the REAL target, then start fresh
+    _realDamage = result;
+    _damageController.reset();
+    _damageAnimation =
+        Tween<double>(begin: 0.0, end: _realDamage).animate(
+          CurvedAnimation(parent: _damageController, curve: Curves.easeOut),
+        )..addListener(
+          () => setState(() => _currentDamage = _damageAnimation.value),
+        );
+
     setState(() => _analysisComplete = true);
+
     _resultController.forward();
     _damageController.forward();
   }
