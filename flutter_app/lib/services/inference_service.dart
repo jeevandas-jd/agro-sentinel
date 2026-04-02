@@ -10,18 +10,67 @@ class InferenceService {
   Interpreter? _interpreter;
   bool _loaded = false;
 
+  // Cached tensor metadata (populated by loadModel()).
+  int _inputHeight = 256;
+  int _inputWidth = 256;
+  int _inputChannels = 3;
+  int _numClasses = 2;
+  bool _binaryModel = true;
+  int _outputRank = 2;
+
   /// Load model from assets once at app start.
   Future<void> loadModel() async {
     try {
-      _interpreter = await Interpreter.fromAsset('models/your_model.tflite');
+      // Must match `pubspec.yaml`:
+      //   - assets/models/model.tflite
+      // => load path is `models/model.tflite`
+      _interpreter = await Interpreter.fromAsset('models/model.tflite');
 
       // Debug (optional but VERY useful)
-      final inputShape = _interpreter!.getInputTensor(0).shape;
-      final outputShape = _interpreter!.getOutputTensor(0).shape;
+      final inputTensor = _interpreter!.getInputTensor(0);
+      final outputTensor = _interpreter!.getOutputTensor(0);
+
+      final inputShape = inputTensor.shape; // e.g. [1, 256, 256, 3]
+      final outputShape = outputTensor.shape; // e.g. [1, 2]
 
       print("✅ Model loaded");
       print("📥 Input shape: $inputShape");
       print("📤 Output shape: $outputShape");
+
+      // Infer expected dimensions from model tensors.
+      // Note: this implementation currently supports float input models with 3 channels.
+      if (inputShape.length == 4) {
+        // [batch, height, width, channels]
+        _inputHeight = inputShape[1];
+        _inputWidth = inputShape[2];
+        _inputChannels = inputShape[3];
+      }
+
+      if (outputShape.isNotEmpty) {
+        _outputRank = outputShape.length;
+        if (outputShape.length == 2) {
+          // [batch, classes]
+          _numClasses = outputShape[1];
+        } else if (outputShape.length == 1) {
+          // [classes]
+          _numClasses = outputShape[0];
+        } else {
+          // Fallback: flatten to last dimension-ish.
+          _numClasses = outputShape.last;
+        }
+      }
+
+      _binaryModel = _numClasses == 2;
+
+      print("🧮 Using input: ${_inputHeight}x${_inputWidth}x$_inputChannels");
+      print("🧮 Using classes: $_numClasses");
+
+      // Guardrails: if the model expects something else, you'll get clearer errors later.
+      if (_inputChannels != 3) {
+        throw UnsupportedError(
+          'Unsupported input channels $_inputChannels. Only 3-channel RGB models are supported by this classifier.',
+        );
+      }
 
       _loaded = true;
     } catch (e) {
@@ -43,14 +92,14 @@ class InferenceService {
       throw Exception("Failed to decode image");
     }
 
-    final resized = img.copyResize(image, width: 256, height: 256);
+    final resized = img.copyResize(image, width: _inputWidth, height: _inputHeight);
 
     const mean = [0.485, 0.456, 0.406];
     const std = [0.229, 0.224, 0.225];
 
     return [
-      List.generate(256, (y) {
-        return List.generate(256, (x) {
+      List.generate(_inputHeight, (y) {
+        return List.generate(_inputWidth, (x) {
           final pixel = resized.getPixel(x, y);
 
           return [
@@ -86,30 +135,57 @@ class InferenceService {
       // Preprocess
       final input = _preprocess(imageFile);
 
-      // Prepare output (assuming [1,2])
-      final output = List.generate(1, (_) => List.filled(2, 0.0));
+      // Prepare output based on model output rank.
+      dynamic output;
+      if (_outputRank == 2) {
+        // [batch, classes]
+        output = List.generate(1, (_) => List.filled(_numClasses, 0.0));
+      } else if (_outputRank == 1) {
+        // [classes]
+        output = List.filled(_numClasses, 0.0);
+      } else {
+        // Best-effort fallback: treat as flattened [classes].
+        output = List.filled(_numClasses, 0.0);
+      }
 
       // Run model
       _interpreter!.run(input, output);
 
       // Postprocess
-      final probs = _softmax(output[0]);
+      final logits = _outputRank == 2
+          ? (output as List<List<double>>)[0]
+          : (output as List<double>);
 
-      final damagedProb = probs[0];
-      final nonDamagedProb = probs[1];
+      final probs = _softmax(logits);
+      final topProb = probs.reduce(math.max);
+      final topIndex = probs.indexOf(topProb);
 
-      final result = damagedProb > nonDamagedProb
-          ? {"label": "damaged", "confidence": damagedProb}
-          : {"label": "non_damaged", "confidence": nonDamagedProb};
+      final result = _binaryModel
+          ? (() {
+              final damagedProb = probs[0];
+              final nonDamagedProb = probs[1];
+              return damagedProb > nonDamagedProb
+                  ? {"label": "damaged", "confidence": damagedProb}
+                  : {"label": "non_damaged", "confidence": nonDamagedProb};
+            })()
+          : {"label": "class_$topIndex", "confidence": topProb};
 
       print("🧠 Inference result: $result");
 
-      return result;
+      return {
+        ...result,
+        'probs': probs,
+        'numClasses': _numClasses,
+      };
     } catch (e) {
       print("❌ Inference failed: $e");
 
       // Fallback (your original safe behavior)
-      return <String, dynamic>{'label': 'non_damaged', 'confidence': 0.0};
+      return <String, dynamic>{
+        'label': 'non_damaged',
+        'confidence': 0.0,
+        'error': e.toString(),
+      };
     }
   }
 
