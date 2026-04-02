@@ -1,34 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:provider/provider.dart';
-import 'core/router/app_router.dart';
-import 'core/theme/app_theme.dart';
+import 'features/auth/auth_service.dart';
+import 'app/app_router.dart';
 import 'firebase_options.dart';
-import 'providers/auth_provider.dart';
+import 'theme/app_theme.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(const AgroSentinelApp());
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]);
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark,
+      systemNavigationBarColor: AppColors.surface,
+      systemNavigationBarIconBrightness: Brightness.dark,
+    ),
+  );
+  runApp(const AgriSentinelApp());
 }
 
-class AgroSentinelApp extends StatelessWidget {
-  const AgroSentinelApp({super.key});
+class AgriSentinelApp extends StatelessWidget {
+  final AuthService? authService;
+
+  const AgriSentinelApp({super.key, this.authService});
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-      ],
-      child: MaterialApp.router(
-        title: 'Agro Sentinel',
-        theme: AppTheme.dark,
-        routerConfig: appRouter,
-        debugShowCheckedModeBanner: false,
-      ),
+    return MaterialApp(
+      title: 'AgriSentinel',
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.theme,
+      home: AppRouter(authService: authService),
     );
   }
 }

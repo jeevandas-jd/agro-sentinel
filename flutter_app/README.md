@@ -1,4 +1,4 @@
-# agro_sentinel
+# frontend
 
 A new Flutter project.
 
