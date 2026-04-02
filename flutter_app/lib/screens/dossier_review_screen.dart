@@ -70,7 +70,10 @@ class _DossierReviewScreenState extends State<DossierReviewScreen> {
     final damaged = hotspots
         .where((hotspot) => (hotspot.aiResult ?? '').toUpperCase() == 'DAMAGED')
         .length;
-    final treesLost = hotspots.fold<int>(0, (sum, hotspot) => sum + hotspot.treesLost);
+    final treesLost = hotspots.fold<int>(
+      0,
+      (sum, hotspot) => sum + hotspot.treesLost,
+    );
     final estimatedLoss = treesLost * 2500;
 
     return Scaffold(
@@ -110,8 +113,9 @@ class _DossierReviewScreenState extends State<DossierReviewScreen> {
                       contentPadding: EdgeInsets.zero,
                       leading: CircleAvatar(child: Text(hotspot.id)),
                       title: Text(hotspot.aiResult ?? 'PENDING'),
-                      subtitle:
-                          Text('Confidence ${(hotspot.aiConfidence ?? 0) * 100}%'),
+                      subtitle: Text(
+                        'Confidence ${(hotspot.aiConfidence ?? 0) * 100}%',
+                      ),
                     ),
                   )
                   .toList(),
@@ -157,9 +161,7 @@ class _DossierReviewScreenState extends State<DossierReviewScreen> {
           ElevatedButton(
             onPressed: () {
               Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const DossierSubmitScreen(),
-                ),
+                MaterialPageRoute(builder: (_) => const DossierSubmitScreen()),
               );
             },
             child: const Text('Generate PDF Report'),
