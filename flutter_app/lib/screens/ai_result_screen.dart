@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
 import '../models/hotspot_model.dart';
+import '../services/inference_service.dart';
 
 class AIResultScreen extends StatefulWidget {
   final HotspotModel hotspot;
@@ -22,23 +24,56 @@ class AIResultScreen extends StatefulWidget {
 
 class _AIResultScreenState extends State<AIResultScreen> {
   bool _loading = true;
-  late final bool _damaged;
-  late final double _confidence;
-  late final int _treesAffected;
+  bool _damaged = false;
+  double _confidence = 0.0;
+  int _treesAffected = 0;
+  String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
-    _damaged = DateTime.now().millisecond.isEven;
-    _confidence = _damaged ? 0.94 : 0.89;
-    _treesAffected = _damaged ? 12 : 0;
-    unawaited(_simulateAnalysis());
+    unawaited(_runAnalysis());
   }
 
-  Future<void> _simulateAnalysis() async {
-    await Future<void>.delayed(const Duration(seconds: 2));
-    if (mounted) {
-      setState(() => _loading = false);
+  Future<void> _runAnalysis() async {
+    if (kIsWeb) {
+      // Web platform has no file access — keep a reasonable demo value.
+      await Future<void>.delayed(const Duration(seconds: 2));
+      if (mounted) {
+        setState(() {
+          _damaged = true;
+          _confidence = 0.87;
+          _treesAffected = 8;
+          _loading = false;
+        });
+      }
+      return;
+    }
+
+    try {
+      final service = InferenceService();
+      await service.loadModel();
+      final result = await service.classify(File(widget.photoPath));
+      service.dispose();
+
+      if (mounted) {
+        final isDamaged = (result['label'] as String) == 'damaged';
+        final confidence = result['confidence'] as double;
+        setState(() {
+          _damaged = isDamaged;
+          _confidence = confidence;
+          // Estimate affected trees from confidence × a base count of 20 trees/hotspot.
+          _treesAffected = isDamaged ? math.max(1, (confidence * 20).round()) : 0;
+          _loading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = 'Analysis failed: ${e.toString().split('\n').first}';
+          _loading = false;
+        });
+      }
     }
   }
 
@@ -95,7 +130,7 @@ class _AIResultScreenState extends State<AIResultScreen> {
                   children: [
                     CircularProgressIndicator(),
                     SizedBox(width: 12),
-                    Text('Analysing damage...'),
+                    Text('Running AI damage analysis…'),
                   ],
                 ),
               ),
@@ -107,18 +142,25 @@ class _AIResultScreenState extends State<AIResultScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      resultLabel,
-                      style: TextStyle(
-                        color: resultColor,
-                        fontSize: 30,
-                        fontWeight: FontWeight.w800,
+                    if (_errorMessage != null)
+                      Text(
+                        _errorMessage!,
+                        style: const TextStyle(color: Colors.orange),
+                      )
+                    else ...[
+                      Text(
+                        resultLabel,
+                        style: TextStyle(
+                          color: resultColor,
+                          fontSize: 30,
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text('${(_confidence * 100).toStringAsFixed(0)}% confidence'),
-                    const SizedBox(height: 6),
-                    if (_damaged) Text('Estimated trees affected: $_treesAffected'),
+                      const SizedBox(height: 4),
+                      Text('${(_confidence * 100).toStringAsFixed(0)}% confidence'),
+                      const SizedBox(height: 6),
+                      if (_damaged) Text('Estimated trees affected: $_treesAffected'),
+                    ],
                   ],
                 ),
               ),

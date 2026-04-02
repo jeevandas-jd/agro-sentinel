@@ -7,6 +7,7 @@ import '../models/disaster_event_model.dart';
 import '../models/farm_model.dart';
 import '../models/farmer_model.dart';
 import '../models/hotspot_model.dart';
+import '../services/ai_narrative_service.dart';
 import '../theme/app_theme.dart';
 import 'camera_capture_screen.dart';
 import 'dossier_review_screen.dart';
@@ -31,6 +32,7 @@ class _HotspotMapScreenState extends State<HotspotMapScreen> {
   late List<HotspotModel> _hotspots;
   gmaps.BitmapDescriptor? _hotspotIcon;
   gmaps.BitmapDescriptor? _visitedHotspotIcon;
+  bool _generating = false;
 
   @override
   void initState() {
@@ -135,23 +137,29 @@ class _HotspotMapScreenState extends State<HotspotMapScreen> {
     });
   }
 
-  void _finish() {
+  Future<void> _finish() async {
     final ready = _hotspots.any((hotspot) => hotspot.hasAnalysedPhoto);
-    if (!ready) {
-      return;
-    }
-    final damagedCount = _hotspots
-        .where((hotspot) => (hotspot.aiResult ?? '').toUpperCase() == 'DAMAGED')
-        .length;
+    if (!ready || _generating) return;
+
+    setState(() => _generating = true);
+
     final treesLost = _hotspots.fold<int>(0, (sum, hotspot) => sum + hotspot.treesLost);
-    final event = widget.initialEvent.copyWith(
+
+    // Build event with real hotspot results so the narrative service has full data.
+    final eventWithResults = widget.initialEvent.copyWith(
       hotspots: _hotspots,
       totalTreesLost: treesLost,
       estimatedLossInr: treesLost * 2500,
-      aiNarrative:
-          'AI review indicates $damagedCount damaged area(s) with visible canopy loss and broken crowns.',
       status: 'submitted',
     );
+
+    // Generate a data-driven narrative from actual analysis results.
+    final narrative = await AINarrativeService().generateNarrative(eventWithResults);
+
+    if (!mounted) return;
+    setState(() => _generating = false);
+
+    final event = eventWithResults.copyWith(aiNarrative: narrative);
 
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -297,8 +305,14 @@ class _HotspotMapScreenState extends State<HotspotMapScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: hasReady ? _finish : null,
-                        child: const Text('Done — Generate Report'),
+                        onPressed: (hasReady && !_generating) ? _finish : null,
+                        child: _generating
+                            ? const SizedBox(
+                                height: 18,
+                                width: 18,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Text('Done — Generate Report'),
                       ),
                     ),
                   ],
