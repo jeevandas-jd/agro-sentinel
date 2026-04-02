@@ -183,6 +183,20 @@ class _HotspotMapScreenState extends State<HotspotMapScreen> {
         )
         .toSet();
 
+    // Build the farm boundary polygon from the stored boundary points.
+    final boundaryPoints = widget.farm.boundaries
+        .map((p) => gmaps.LatLng(p.latitude, p.longitude))
+        .toList(growable: false);
+    final farmPolygon = boundaryPoints.length >= 3
+        ? gmaps.Polygon(
+            polygonId: const gmaps.PolygonId('farm-boundary'),
+            points: boundaryPoints,
+            strokeColor: AppColors.farmBoundaryColor,
+            fillColor: AppColors.farmBoundaryColor.withValues(alpha: 0.20),
+            strokeWidth: 2,
+          )
+        : null;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Mark Damaged Areas')),
       body: Stack(
@@ -193,9 +207,12 @@ class _HotspotMapScreenState extends State<HotspotMapScreen> {
                 target: gmaps.LatLng(widget.farm.center.latitude, widget.farm.center.longitude),
                 zoom: 16,
               ),
+              mapType: gmaps.MapType.satellite,
               myLocationEnabled: true,
+              myLocationButtonEnabled: false,
               onLongPress: _confirmAndAddHotspot,
               markers: markers,
+              polygons: farmPolygon != null ? {farmPolygon} : const {},
             ),
           ),
           Positioned(
@@ -204,10 +221,22 @@ class _HotspotMapScreenState extends State<HotspotMapScreen> {
             right: 12,
             child: Card(
               child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Text(
-                  'Tap on the map or visit the location to mark damage',
-                  style: Theme.of(context).textTheme.bodyMedium,
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.touch_app_outlined,
+                      size: 18,
+                      color: AppColors.primary,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Long-press inside the boundary to mark a damaged area',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
