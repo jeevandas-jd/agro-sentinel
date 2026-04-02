@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-
 import 'hotspot_model.dart';
 
 class DisasterEventModel {
@@ -16,6 +15,16 @@ class DisasterEventModel {
   final int totalTreesLost;
   final double estimatedLossInr;
 
+  // ── NEW: populated by ReportService before generating the dossier ─────────
+  // All optional with safe defaults so existing code compiles unchanged.
+  final double damageScore; // SatelliteService → 'damage_score'
+  final double confidence; // InferenceService → 'confidence'
+  final double destroyedAreaM2; // SatelliteService → 'destroyed_area_m2'
+  final double affectedAreaHa; // SatelliteService → 'affected_area_ha'
+  final String satelliteSummary; // SatelliteService → 'summary'
+  final String? capturedImagePath; // on-device photo from CameraScreen
+  // ─────────────────────────────────────────────────────────────────────────
+
   const DisasterEventModel({
     required this.id,
     required this.farmerUid,
@@ -29,7 +38,18 @@ class DisasterEventModel {
     this.aiNarrative,
     required this.totalTreesLost,
     required this.estimatedLossInr,
+    // new — all optional
+    this.damageScore = 0.0,
+    this.confidence = 0.0,
+    this.destroyedAreaM2 = 0.0,
+    this.affectedAreaHa = 0.0,
+    this.satelliteSummary = '',
+    this.capturedImagePath,
   });
+
+  int get damagedHotspotsCount => hotspots
+      .where((h) => (h.aiResult ?? '').toUpperCase() == 'DAMAGED')
+      .length;
 
   DisasterEventModel copyWith({
     String? id,
@@ -44,6 +64,13 @@ class DisasterEventModel {
     String? aiNarrative,
     int? totalTreesLost,
     double? estimatedLossInr,
+    // new
+    double? damageScore,
+    double? confidence,
+    double? destroyedAreaM2,
+    double? affectedAreaHa,
+    String? satelliteSummary,
+    String? capturedImagePath,
   }) {
     return DisasterEventModel(
       id: id ?? this.id,
@@ -58,12 +85,17 @@ class DisasterEventModel {
       aiNarrative: aiNarrative ?? this.aiNarrative,
       totalTreesLost: totalTreesLost ?? this.totalTreesLost,
       estimatedLossInr: estimatedLossInr ?? this.estimatedLossInr,
+      damageScore: damageScore ?? this.damageScore,
+      confidence: confidence ?? this.confidence,
+      destroyedAreaM2: destroyedAreaM2 ?? this.destroyedAreaM2,
+      affectedAreaHa: affectedAreaHa ?? this.affectedAreaHa,
+      satelliteSummary: satelliteSummary ?? this.satelliteSummary,
+      capturedImagePath: capturedImagePath ?? this.capturedImagePath,
     );
   }
 
-  int get damagedHotspotsCount =>
-      hotspots.where((hotspot) => (hotspot.aiResult ?? '').toUpperCase() == 'DAMAGED').length;
-
+  // fromFirestore / toFirestore are UNCHANGED — new fields are runtime-only,
+  // not persisted (they come from live service calls, not Firestore docs).
   factory DisasterEventModel.fromFirestore(
     DocumentSnapshot<Map<String, dynamic>> doc,
   ) {
@@ -88,6 +120,7 @@ class DisasterEventModel {
       aiNarrative: data['ai_narrative'] as String?,
       totalTreesLost: _asInt(data['total_trees_lost']),
       estimatedLossInr: _asDouble(data['estimated_loss_inr']),
+      // new fields intentionally omitted — they are never read from Firestore
     );
   }
 
@@ -100,26 +133,27 @@ class DisasterEventModel {
       'occurred_at': Timestamp.fromDate(occurredAt),
       'reported_at': Timestamp.fromDate(reportedAt),
       'status': status,
-      'hotspots': hotspots.map((hotspot) => hotspot.toMap()).toList(),
+      'hotspots': hotspots.map((h) => h.toMap()).toList(),
       'ai_narrative': aiNarrative,
       'total_trees_lost': totalTreesLost,
       'estimated_loss_inr': estimatedLossInr,
+      // new runtime fields deliberately NOT written to Firestore
     };
   }
 
-  static int _asInt(dynamic value) {
-    if (value is num) return value.toInt();
+  static int _asInt(dynamic v) {
+    if (v is num) return v.toInt();
     return 0;
   }
 
-  static double _asDouble(dynamic value) {
-    if (value is num) return value.toDouble();
+  static double _asDouble(dynamic v) {
+    if (v is num) return v.toDouble();
     return 0;
   }
 
-  static DateTime? _asDateTime(dynamic value) {
-    if (value is Timestamp) return value.toDate();
-    if (value is DateTime) return value;
+  static DateTime? _asDateTime(dynamic v) {
+    if (v is Timestamp) return v.toDate();
+    if (v is DateTime) return v;
     return null;
   }
 }

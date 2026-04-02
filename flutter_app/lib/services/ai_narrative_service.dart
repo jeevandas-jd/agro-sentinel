@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-
 import '../models/disaster_event_model.dart';
 import '../models/farm_model.dart';
 
@@ -10,35 +9,24 @@ class AINarrativeService {
     FirebaseFirestore? firestore,
     NarrativeModelCaller? caller,
     String farmsCollection = 'farms',
-  })  : _firestore = firestore ?? FirebaseFirestore.instance,
-        _caller = caller,
-        _farmsCollection = farmsCollection;
+  }) : _firestore = firestore ?? FirebaseFirestore.instance,
+       _caller = caller,
+       _farmsCollection = farmsCollection;
 
   final FirebaseFirestore _firestore;
   final NarrativeModelCaller? _caller;
   final String _farmsCollection;
 
-  /// Calls watsonx.ai or Gemini with structured damage data.
-  /// Returns a paragraph of professional insurance language.
-  ///
-  /// Fallback behavior:
-  /// - If any data lookup fails OR the API call fails, returns a safe, pre-written
-  ///   template string. Never surfaces raw errors to the farmer.
   Future<String> generateNarrative(DisasterEventModel event) async {
     try {
       final farm = await _tryLoadFarm(event.farmId);
       final prompt = _buildPrompt(event: event, farm: farm);
-
       final caller = _caller;
-      if (caller == null) {
-        return _fallbackNarrative(event: event, farm: farm);
-      }
-
+      if (caller == null) return _fallbackNarrative(event: event, farm: farm);
       final response = (await caller(prompt)).trim();
-      if (response.isEmpty) {
-        return _fallbackNarrative(event: event, farm: farm);
-      }
-      return response;
+      return response.isEmpty
+          ? _fallbackNarrative(event: event, farm: farm)
+          : response;
     } catch (_) {
       return _fallbackNarrative(event: event, farm: null);
     }
@@ -47,7 +35,10 @@ class AINarrativeService {
   Future<FarmModel?> _tryLoadFarm(String farmId) async {
     if (farmId.trim().isEmpty) return null;
     try {
-      final doc = await _firestore.collection(_farmsCollection).doc(farmId).get();
+      final doc = await _firestore
+          .collection(_farmsCollection)
+          .doc(farmId)
+          .get();
       if (!doc.exists) return null;
       return FarmModel.fromFirestore(doc);
     } catch (_) {
@@ -59,34 +50,40 @@ class AINarrativeService {
     required DisasterEventModel event,
     required FarmModel? farm,
   }) {
-    final cropType = (farm?.cropType ?? 'Unknown').trim().isEmpty
-        ? 'Unknown'
-        : farm!.cropType.trim();
-    final surveyNumber = (farm?.surveyNumber ?? 'Unknown').trim().isEmpty
-        ? 'Unknown'
-        : farm!.surveyNumber.trim();
+    final crop = _s(farm?.cropType, 'Unknown');
+    final survey = _s(farm?.surveyNumber, 'Unknown');
     final area = (farm?.areaHectares ?? 0).toStringAsFixed(2);
 
-    final damagedCount = event.damagedHotspotsCount;
-    final totalCount = event.hotspots.length;
-    final treesLost = event.totalTreesLost;
-    final date = _formatDate(event.occurredAt);
-
     return '''
-You are an agricultural damage assessment officer. Based on the following 
-field data, write a professional 2-3 sentence damage assessment paragraph 
-suitable for an insurance claim report.
+You are a certified agricultural insurance officer writing a formal damage
+assessment paragraph for an insurance claim dossier.
 
-Farm: $cropType plantation, Survey No. $surveyNumber, $area hectares
-Disaster type: ${event.disasterType}
-Date of incident: $date
-Farmer's account: ${event.farmerDescription}
-AI damage assessment: $damagedCount of $totalCount locations showed 
-significant damage
-Estimated trees lost: $treesLost
+── Farm ──────────────────────────────────────────────
+Crop        : $crop plantation
+Survey No.  : $survey
+Area        : $area ha
 
-Write in formal English. Be factual and precise. Do not add information 
-not provided above.
+── Incident ──────────────────────────────────────────
+Type        : ${event.disasterType}
+Date        : ${_date(event.occurredAt)}
+Farmer note : ${event.farmerDescription}
+
+── Camera AI (TFLite on-device) ──────────────────────
+Locations surveyed  : ${event.hotspots.length}
+Locations damaged   : ${event.damagedHotspotsCount}
+Model confidence    : ${(event.confidence * 100).toStringAsFixed(1)}%
+
+── Satellite analysis ────────────────────────────────
+Damage score        : ${event.damageScore.toStringAsFixed(1)} / 100
+Affected area       : ${event.affectedAreaHa.toStringAsFixed(2)} ha
+Destroyed canopy    : ${event.destroyedAreaM2.toStringAsFixed(0)} m²
+Trees lost          : ${event.totalTreesLost}
+Summary             : ${event.satelliteSummary}
+
+── Instructions ──────────────────────────────────────
+Write 3–4 sentences in formal insurance English.
+Be factual. Mention crop type, area, damage score,
+trees lost, and incident date. Do not invent data.
 ''';
   }
 
@@ -94,27 +91,29 @@ not provided above.
     required DisasterEventModel event,
     required FarmModel? farm,
   }) {
-    final cropType = (farm?.cropType ?? 'the').trim().isEmpty ? 'the' : farm!.cropType.trim();
-    final surveyNumber = (farm?.surveyNumber ?? 'N/A').trim().isEmpty ? 'N/A' : farm!.surveyNumber;
+    final crop = _s(farm?.cropType, 'the');
+    final survey = _s(farm?.surveyNumber, 'N/A');
     final area = (farm?.areaHectares ?? 0).toStringAsFixed(2);
 
-    final damagedCount = event.damagedHotspotsCount;
-    final totalCount = event.hotspots.length;
-    final date = _formatDate(event.occurredAt);
-
-    return 'Based on field observations and available records, a damage survey '
-        'was conducted for the $cropType plantation (Survey No. $surveyNumber, $area ha) '
-        'for the reported ${event.disasterType} incident dated $date. '
-        'The farmer reported: "${event.farmerDescription}". '
-        'AI-assisted review indicates $damagedCount of $totalCount surveyed locations '
-        'showed significant damage, with an estimated tree loss of ${event.totalTreesLost}.';
+    return 'A damage assessment was conducted for the $crop plantation '
+        '(Survey No. $survey, $area ha) following the '
+        '${event.disasterType} incident on ${_date(event.occurredAt)}. '
+        'Farmer testimony: "${event.farmerDescription}". '
+        'On-field camera AI recorded ${(event.confidence * 100).toStringAsFixed(1)}% '
+        'confidence of damage across ${event.damagedHotspotsCount} of '
+        '${event.hotspots.length} surveyed locations. '
+        'Satellite analysis returned a damage score of '
+        '${event.damageScore.toStringAsFixed(1)}/100, with '
+        '${event.affectedAreaHa.toStringAsFixed(2)} ha affected, '
+        '${event.destroyedAreaM2.toStringAsFixed(0)} m² of canopy destroyed, '
+        'and an estimated ${event.totalTreesLost} trees lost.';
   }
 
-  String _formatDate(DateTime value) {
-    final y = value.year.toString().padLeft(4, '0');
-    final m = value.month.toString().padLeft(2, '0');
-    final d = value.day.toString().padLeft(2, '0');
-    return '$y-$m-$d';
-  }
+  String _s(String? v, String fallback) =>
+      (v == null || v.trim().isEmpty) ? fallback : v.trim();
+
+  String _date(DateTime dt) =>
+      '${dt.year.toString().padLeft(4, '0')}-'
+      '${dt.month.toString().padLeft(2, '0')}-'
+      '${dt.day.toString().padLeft(2, '0')}';
 }
-
