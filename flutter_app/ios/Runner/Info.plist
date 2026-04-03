@@ -6,6 +6,8 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>AgriSentinel needs camera access to capture ground evidence photos for crop damage verification.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>AgriSentinel uses the microphone to convert your voice into text for faster damage reporting.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>AgriSentinel needs photo library access to save captured evidence images.</string>
 	<key>CFBundleDevelopmentRegion</key>
