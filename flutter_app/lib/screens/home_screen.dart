@@ -221,10 +221,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
             const SizedBox(height: 16),
 
-            // ── Language selector ─────────────────────────────────────────
-            _LanguageBanner(),
-            const SizedBox(height: 20),
-
             // ── My Farms ──────────────────────────────────────────────────
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -700,95 +696,3 @@ class _StatusBadge extends StatelessWidget {
     );
   }
 }
-
-// ── Language banner ──────────────────────────────────────────────────────────
-
-class _LanguageBanner extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    // Find the active language from the current locale
-    final code = Localizations.localeOf(context).languageCode;
-    final lang = _kLanguages.firstWhere(
-      (l) => l.code == code,
-      orElse: () => _kLanguages.first,
-    );
-
-    return InkWell(
-      onTap: () => showLanguagePickerSheet(context),
-      borderRadius: BorderRadius.circular(AppRadii.l),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: AppColors.primary.withValues(alpha: 0.07),
-          borderRadius: BorderRadius.circular(AppRadii.l),
-          border: Border.all(
-            color: AppColors.primary.withValues(alpha: 0.18),
-          ),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.12),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.language_outlined,
-                color: AppColors.primary,
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.language,
-                    style: const TextStyle(
-                      color: AppColors.textMuted,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.4,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '${lang.nativeName}  ·  ${lang.name}',
-                    style: const TextStyle(
-                      color: AppColors.primary,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(
-              Icons.chevron_right,
-              color: AppColors.primary,
-              size: 20,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-const _kLanguages = [
-  (code: 'en', name: 'English', nativeName: 'English'),
-  (code: 'hi', name: 'Hindi', nativeName: 'हिन्दी'),
-  (code: 'ml', name: 'Malayalam', nativeName: 'മലയാളം'),
-  (code: 'ta', name: 'Tamil', nativeName: 'தமிழ்'),
-  (code: 'te', name: 'Telugu', nativeName: 'తెలుగు'),
-  (code: 'gu', name: 'Gujarati', nativeName: 'ગુજરાતી'),
-  (code: 'ur', name: 'Urdu', nativeName: 'اردو'),
-  (code: 'kn', name: 'Kannada', nativeName: 'ಕನ್ನಡ'),
-  (code: 'pa', name: 'Punjabi', nativeName: 'ਪੰਜਾਬੀ'),
-  (code: 'mr', name: 'Marathi', nativeName: 'मराठी'),
-  (code: 'or', name: 'Odia', nativeName: 'ଓଡ଼ିଆ'),
-];

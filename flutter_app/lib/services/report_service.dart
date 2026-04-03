@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/disaster_event_model.dart';
-import '../models/hotspot_model.dart';
 import 'ai_narrative_service.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════════

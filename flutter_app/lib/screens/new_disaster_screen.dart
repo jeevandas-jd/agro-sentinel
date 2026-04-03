@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../models/disaster_event_model.dart';
 import '../models/farm_model.dart';
 import '../models/farmer_model.dart';
+import '../services/disaster_event_service.dart';
+import '../services/voice_to_text_service.dart';
 import 'hotspot_map_screen.dart';
 
 class NewDisasterScreen extends StatefulWidget {
@@ -28,14 +30,58 @@ class _NewDisasterScreenState extends State<NewDisasterScreen> {
     'Other',
   ];
 
+  final _eventService = DisasterEventService();
+  final _voiceService = VoiceToTextService();
   final TextEditingController _descriptionController = TextEditingController();
   String? _selectedType;
   DateTime _occurredAt = DateTime.now();
+  bool _saving = false;
+  bool _listening = false;
+  String _lastFinalVoiceText = '';
 
   @override
   void dispose() {
+    _voiceService.dispose();
     _descriptionController.dispose();
     super.dispose();
+  }
+
+  Future<void> _toggleVoiceToText() async {
+    if (_listening) {
+      await _voiceService.stopListening();
+      if (mounted) setState(() => _listening = false);
+      return;
+    }
+
+    try {
+      await _voiceService.startListening(
+        onResult: (result) {
+          if (!mounted) return;
+          // Speech recognition fires partial results repeatedly. Only append the
+          // finalized transcript once to avoid duplicated phrases.
+          if (!result.isFinal) return;
+
+          final text = result.text;
+          if (text == _lastFinalVoiceText) return;
+          _lastFinalVoiceText = text;
+
+          final existing = _descriptionController.text.trimRight();
+          final next = existing.isEmpty ? text : '$existing $text';
+          _descriptionController.value = TextEditingValue(
+            text: next,
+            selection: TextSelection.collapsed(offset: next.length),
+          );
+          setState(() {});
+        },
+      );
+      if (mounted) setState(() => _listening = true);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _listening = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Voice input unavailable: $e')),
+      );
+    }
   }
 
   Future<void> _pickDateTime() async {
@@ -66,7 +112,7 @@ class _NewDisasterScreenState extends State<NewDisasterScreen> {
     });
   }
 
-  void _continue() {
+  Future<void> _continue() async {
     final description = _descriptionController.text.trim();
     if (_selectedType == null || description.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -76,6 +122,8 @@ class _NewDisasterScreenState extends State<NewDisasterScreen> {
       );
       return;
     }
+    if (_saving) return;
+    setState(() => _saving = true);
     final event = DisasterEventModel(
       id: 'evt-${DateTime.now().millisecondsSinceEpoch}',
       farmerUid: widget.farmer.uid,
@@ -91,15 +139,26 @@ class _NewDisasterScreenState extends State<NewDisasterScreen> {
       estimatedLossInr: 0,
     );
 
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => HotspotMapScreen(
-          farm: widget.farm,
-          farmer: widget.farmer,
-          initialEvent: event,
+    try {
+      final savedId = await _eventService.saveEvent(event);
+      if (!mounted) return;
+      setState(() => _saving = false);
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => HotspotMapScreen(
+            farm: widget.farm,
+            farmer: widget.farmer,
+            initialEvent: event.copyWith(id: savedId),
+          ),
         ),
-      ),
-    );
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _saving = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not save report draft: $e')),
+      );
+    }
   }
 
   @override
@@ -149,11 +208,19 @@ class _NewDisasterScreenState extends State<NewDisasterScreen> {
                     minLines: 3,
                     maxLines: 6,
                     onChanged: (_) => setState(() {}),
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Describe what happened',
                       hintText:
                           'e.g. Wild elephants destroyed the northern section last night',
                       alignLabelWithHint: true,
+                      suffixIcon: IconButton(
+                        tooltip: _listening ? 'Stop voice input' : 'Voice to text',
+                        onPressed: _toggleVoiceToText,
+                        icon: Icon(
+                          _listening ? Icons.mic : Icons.mic_none,
+                          color: _listening ? Colors.red : null,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -169,8 +236,14 @@ class _NewDisasterScreenState extends State<NewDisasterScreen> {
               child: SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _continue,
-                  child: const Text('Continue to Map'),
+                  onPressed: _saving ? null : _continue,
+                  child: _saving
+                      ? const SizedBox(
+                          height: 18,
+                          width: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Continue to Map'),
                 ),
               ),
             ),

@@ -8,6 +8,7 @@ import '../models/farm_model.dart';
 import '../models/farmer_model.dart';
 import '../models/hotspot_model.dart';
 import '../services/ai_narrative_service.dart';
+import '../services/disaster_event_service.dart';
 import '../theme/app_theme.dart';
 import 'camera_capture_screen.dart';
 import 'dossier_review_screen.dart';
@@ -30,6 +31,7 @@ class HotspotMapScreen extends StatefulWidget {
 
 class _HotspotMapScreenState extends State<HotspotMapScreen> {
   late List<HotspotModel> _hotspots;
+  final _eventService = DisasterEventService();
   gmaps.BitmapDescriptor? _hotspotIcon;
   gmaps.BitmapDescriptor? _visitedHotspotIcon;
   bool _generating = false;
@@ -157,19 +159,29 @@ class _HotspotMapScreenState extends State<HotspotMapScreen> {
     final narrative = await AINarrativeService().generateNarrative(eventWithResults);
 
     if (!mounted) return;
-    setState(() => _generating = false);
 
     final event = eventWithResults.copyWith(aiNarrative: narrative);
 
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => DossierReviewScreen(
-          farm: widget.farm,
-          farmer: widget.farmer,
-          event: event,
+    try {
+      await _eventService.saveEvent(event);
+      if (!mounted) return;
+      setState(() => _generating = false);
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => DossierReviewScreen(
+            farm: widget.farm,
+            farmer: widget.farmer,
+            event: event,
+          ),
         ),
-      ),
-    );
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _generating = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not save report: $e')),
+      );
+    }
   }
 
   @override
