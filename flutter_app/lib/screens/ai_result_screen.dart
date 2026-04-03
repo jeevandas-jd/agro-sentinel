@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 
 import '../models/hotspot_model.dart';
 import '../services/inference_service.dart';
+import '../widgets/tutorial_wrapper.dart';
 
 class AIResultScreen extends StatefulWidget {
   final HotspotModel hotspot;
@@ -91,9 +92,11 @@ class _AIResultScreenState extends State<AIResultScreen> {
   Widget build(BuildContext context) {
     final resultColor = _damaged ? Colors.red : Colors.green;
     final resultLabel = _damaged ? 'DAMAGED' : 'HEALTHY';
-    return Scaffold(
-      appBar: AppBar(title: const Text('AI Result')),
-      body: ListView(
+    return TutorialWrapper(
+      screenKey: 'ai_result',
+      child: Scaffold(
+        appBar: AppBar(title: const Text('AI Result')),
+        body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           ClipRRect(
@@ -176,6 +179,7 @@ class _AIResultScreenState extends State<AIResultScreen> {
             child: const Text('Retake Photo'),
           ),
         ],
+        ),
       ),
     );
   }

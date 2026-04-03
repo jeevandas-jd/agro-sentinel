@@ -19,10 +19,19 @@ class TutorialWrapper extends StatefulWidget {
 class _TutorialWrapperState extends State<TutorialWrapper> {
   final _svc = TutorialService();
   bool _speaking = false;
+  bool _ready = false;
 
   @override
   void initState() {
     super.initState();
+    _initAndMaybeAutoPlay();
+  }
+
+  Future<void> _initAndMaybeAutoPlay() async {
+    await _svc.init(); // pulls tutorial_enabled + tutorial_lang from local storage
+    if (!mounted) return;
+    setState(() => _ready = true);
+    if (!_svc.isEnabled) return;
     // slight delay so the screen has rendered before audio starts
     Future.delayed(const Duration(milliseconds: 600), _autoPlay);
   }
@@ -56,7 +65,7 @@ class _TutorialWrapperState extends State<TutorialWrapper> {
           bottom: 90,
           left: 16,
           child: AnimatedOpacity(
-            opacity: _svc.isEnabled ? 1.0 : 0.0,
+            opacity: (_ready && _svc.isEnabled) ? 1.0 : 0.0,
             duration: const Duration(milliseconds: 300),
             child: FloatingActionButton.small(
               heroTag: 'tutorial_${widget.screenKey}',

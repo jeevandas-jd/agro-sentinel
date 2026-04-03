@@ -8,6 +8,7 @@ import '../widgets/damage_gauge.dart';
 import '../widgets/glass_panel.dart';
 import 'claim_screen.dart';
 import '../services/inference_service.dart';
+import '../widgets/tutorial_wrapper.dart';
 
 class CameraScreen extends StatefulWidget {
   final Hotspot hotspot;
@@ -187,11 +188,13 @@ class _CameraScreenState extends State<CameraScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
+    return TutorialWrapper(
+      screenKey: 'camera',
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
           // 1. Camera / background
           _buildCameraLayer(),
           Positioned.fill(
@@ -297,7 +300,8 @@ class _CameraScreenState extends State<CameraScreen>
             right: 0,
             child: SafeArea(child: _buildBottomButton()),
           ),
-        ],
+          ],
+        ),
       ),
     );
   }

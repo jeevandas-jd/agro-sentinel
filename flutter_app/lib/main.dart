@@ -8,15 +8,12 @@ import 'firebase_options.dart';
 import 'theme/app_theme.dart';
 import 'core/providers/locale_provider.dart';
 import 'package:agrisentinel/l10n/app_localizations.dart';
+import 'package:agrisentinel/services/tutorial_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-  ]);
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -25,6 +22,7 @@ Future<void> main() async {
       systemNavigationBarIconBrightness: Brightness.dark,
     ),
   );
+  await TutorialService().init();
   runApp(const AgriSentinelApp());
 }
 

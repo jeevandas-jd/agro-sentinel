@@ -85,6 +85,7 @@ flutter:
     - assets/models/model.tflite
     - assets/demo/before.png
     - assets/demo/after.png
+    - assets/audio/en/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

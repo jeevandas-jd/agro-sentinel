@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/hotspot.dart';
 import '../theme/app_theme.dart';
 import '../widgets/compass_widget.dart';
+import '../widgets/tutorial_wrapper.dart';
 import 'camera_screen.dart';
 
 class NavigationScreen extends StatefulWidget {
@@ -109,10 +110,12 @@ class _NavigationScreenState extends State<NavigationScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Stack(
-        children: [
+    return TutorialWrapper(
+      screenKey: 'navigation',
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: Stack(
+          children: [
           CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
@@ -231,7 +234,8 @@ class _NavigationScreenState extends State<NavigationScreen>
               ),
             ),
           ),
-        ],
+          ],
+        ),
       ),
     );
   }

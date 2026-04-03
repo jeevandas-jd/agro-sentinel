@@ -6,6 +6,7 @@ import '../features/auth/login_page.dart';
 import '../features/auth/register_page.dart';
 import '../models/farmer_model.dart';
 import '../screens/home_screen.dart';
+import '../screens/onboarding_screen.dart';
 import '../screens/splash_screen.dart';
 import '../services/farmer_service.dart';
 
@@ -23,6 +24,7 @@ class _AppRouterState extends State<AppRouter> {
   late final FarmerService _farmerService;
   bool _showSplash = true;
   bool _showRegister = false;
+  bool _onboardingJustCompleted = false;
 
   @override
   void initState() {
@@ -67,7 +69,8 @@ class _AppRouterState extends State<AppRouter> {
 
               if (farmerSnapshot.hasError) {
                 return _ErrorView(
-                  message: farmerSnapshot.error?.toString() ??
+                  message:
+                      farmerSnapshot.error?.toString() ??
                       'Failed to load your profile.',
                   onRetry: () => setState(() {}),
                 );
@@ -75,7 +78,8 @@ class _AppRouterState extends State<AppRouter> {
 
               // If the Firestore profile doc doesn't exist yet, build a minimal
               // FarmerModel from the Firebase Auth user so the app still opens.
-              final farmer = farmerSnapshot.data ??
+              final farmer =
+                  farmerSnapshot.data ??
                   FarmerModel(
                     uid: firebaseUser.uid,
                     name: firebaseUser.displayName?.trim().isNotEmpty == true
@@ -87,9 +91,28 @@ class _AppRouterState extends State<AppRouter> {
                     createdAt: null,
                   );
 
-              return HomeScreen(
-                farmer: farmer,
-                authService: _authService,
+              return FutureBuilder<bool>(
+                future: OnboardingScreen.isCompleted(),
+                builder: (context, onboardingSnapshot) {
+                  if (onboardingSnapshot.connectionState ==
+                      ConnectionState.waiting) {
+                    return const Scaffold(
+                      body: Center(child: CircularProgressIndicator()),
+                    );
+                  }
+
+                  final completed = onboardingSnapshot.data ?? false;
+                  if (!completed && !_onboardingJustCompleted) {
+                    return OnboardingScreen(
+                      onCompleted: () {
+                        if (!mounted) return;
+                        setState(() => _onboardingJustCompleted = true);
+                      },
+                    );
+                  }
+
+                  return HomeScreen(farmer: farmer, authService: _authService);
+                },
               );
             },
           );
@@ -132,7 +155,11 @@ class _ErrorView extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.cloud_off_outlined, size: 56, color: Colors.grey),
+              const Icon(
+                Icons.cloud_off_outlined,
+                size: 56,
+                color: Colors.grey,
+              ),
               const SizedBox(height: 16),
               const Text(
                 'Could not load your profile',
