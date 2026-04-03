@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:agrisentinel/l10n/app_localizations.dart';
 
 import '../features/auth/auth_service.dart';
+import '../widgets/language_picker_sheet.dart';
 import '../models/disaster_event_model.dart';
 import '../models/farm_model.dart';
 import '../models/farmer_model.dart';
@@ -101,10 +103,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _reportDisaster() {
+    final l10n = AppLocalizations.of(context);
     final farms = _farms ?? [];
     if (farms.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please add a farm first.')),
+        SnackBar(content: Text(l10n.pleaseAddFarmFirst)),
       );
       return;
     }
@@ -130,6 +133,7 @@ class _HomeScreenState extends State<HomeScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) {
+        final l10n = AppLocalizations.of(ctx);
         final farms = _farms ?? [];
         return SafeArea(
           child: Column(
@@ -139,7 +143,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
                 child: Text(
-                  'Select Farm to Report',
+                  l10n.selectFarmToReport,
                   style: Theme.of(ctx).textTheme.titleMedium,
                 ),
               ),
@@ -169,15 +173,21 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final farmer = widget.farmer;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Agro Sentinel'),
+        title: Text(l10n.appTitle),
         actions: [
+          IconButton(
+            onPressed: () => showLanguagePickerSheet(context),
+            icon: const Icon(Icons.language_outlined),
+            tooltip: l10n.language,
+          ),
           IconButton(
             onPressed: _logout,
             icon: const Icon(Icons.logout),
-            tooltip: 'Sign out',
+            tooltip: l10n.signOut,
           ),
         ],
       ),
@@ -193,7 +203,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             // ── Greeting ──────────────────────────────────────────────────
             Text(
-              'Hello, ${farmer.name}',
+              l10n.hello(farmer.name),
               style: const TextStyle(
                 fontSize: 26,
                 fontWeight: FontWeight.w800,
@@ -209,15 +219,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ],
+            const SizedBox(height: 16),
+
+            // ── Language selector ─────────────────────────────────────────
+            _LanguageBanner(),
             const SizedBox(height: 20),
 
             // ── My Farms ──────────────────────────────────────────────────
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'My Farms',
-                  style: TextStyle(
+                Text(
+                  l10n.myFarms,
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                   ),
@@ -225,7 +239,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 TextButton.icon(
                   onPressed: _openAddFarm,
                   icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Add'),
+                  label: Text(l10n.add),
                 ),
               ],
             ),
@@ -235,21 +249,21 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 24),
 
             // ── Quick Actions ─────────────────────────────────────────────
-            const Text(
-              'Quick Actions',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+            Text(
+              l10n.quickActions,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 10),
             _ActionCard(
-              title: 'Report Disaster',
-              subtitle: 'Start a new damage report for a farm',
+              title: l10n.reportDisaster,
+              subtitle: l10n.reportDisasterSubtitle,
               icon: Icons.warning_amber_rounded,
               onTap: _reportDisaster,
             ),
             const SizedBox(height: 10),
             _ActionCard(
-              title: 'Add New Farm',
-              subtitle: 'Register a new farm plot with boundary',
+              title: l10n.addNewFarm,
+              subtitle: l10n.addNewFarmSubtitle,
               icon: Icons.add_location_alt_outlined,
               onTap: _openAddFarm,
             ),
@@ -257,9 +271,9 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 24),
 
             // ── Disaster Events ───────────────────────────────────────────
-            const Text(
-              'Disaster Events',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+            Text(
+              l10n.disasterEvents,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 10),
             _buildEventsSection(),
@@ -269,7 +283,7 @@ class _HomeScreenState extends State<HomeScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _openAddFarm,
         icon: const Icon(Icons.add_location_alt_outlined),
-        label: const Text('Add Farm'),
+        label: Text(l10n.addFarm),
       ),
     );
   }
@@ -277,14 +291,15 @@ class _HomeScreenState extends State<HomeScreen> {
   // ── Farms section ────────────────────────────────────────────────────────
 
   Widget _buildFarmsSection() {
+    final l10n = AppLocalizations.of(context);
     if (_farmsError != null) {
       return _ErrorCard(
-        message: 'Could not load farms.',
+        message: l10n.couldNotLoadFarms,
         detail: _farmsError!,
       );
     }
     if (_farms == null) {
-      return const _LoadingCard(label: 'Loading farms…');
+      return _LoadingCard(label: l10n.loadingFarms);
     }
     if (_farms!.isEmpty) {
       return _EmptyFarmsCard(onAddTap: _openAddFarm);
@@ -301,14 +316,15 @@ class _HomeScreenState extends State<HomeScreen> {
   // ── Events section ───────────────────────────────────────────────────────
 
   Widget _buildEventsSection() {
+    final l10n = AppLocalizations.of(context);
     if (_eventsError != null) {
       return _ErrorCard(
-        message: 'Could not load events.',
+        message: l10n.couldNotLoadEvents,
         detail: _eventsError!,
       );
     }
     if (_events == null) {
-      return const _LoadingCard(label: 'Loading events…');
+      return _LoadingCard(label: l10n.loadingEvents);
     }
     if (_events!.isEmpty) {
       return Container(
@@ -322,9 +338,9 @@ class _HomeScreenState extends State<HomeScreen> {
               color: AppColors.textMuted,
             ),
             const SizedBox(height: 8),
-            const Text(
-              'No disaster reports yet',
-              style: TextStyle(color: AppColors.textMuted),
+            Text(
+              l10n.noDisasterReportsYet,
+              style: const TextStyle(color: AppColors.textMuted),
             ),
           ],
         ),
@@ -461,7 +477,7 @@ class _FarmCard extends StatelessWidget {
                 child: OutlinedButton.icon(
                   onPressed: onReportDisaster,
                   icon: const Icon(Icons.warning_amber_outlined, size: 16),
-                  label: const Text('Report Disaster'),
+                  label: Text(AppLocalizations.of(context).reportDisaster),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     textStyle: const TextStyle(fontSize: 13),
@@ -515,6 +531,7 @@ class _EmptyFarmsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -526,21 +543,24 @@ class _EmptyFarmsCard extends StatelessWidget {
               color: AppColors.primary,
             ),
             const SizedBox(height: 10),
-            const Text(
-              'No farms added yet',
-              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+            Text(
+              l10n.noFarmsAdded,
+              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
             ),
             const SizedBox(height: 6),
-            const Text(
-              'Add your first farm to start tracking and reporting.',
+            Text(
+              l10n.addFirstFarmDescription,
               textAlign: TextAlign.center,
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 13,
+              ),
             ),
             const SizedBox(height: 16),
             ElevatedButton.icon(
               onPressed: onAddTap,
               icon: const Icon(Icons.add),
-              label: const Text('Add First Farm'),
+              label: Text(l10n.addFirstFarm),
             ),
           ],
         ),
@@ -651,11 +671,12 @@ class _StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final normalized = status.toLowerCase();
     final label = switch (normalized) {
-      'submitted' => 'Submitted',
-      'verified' => 'Verified',
-      _ => 'Draft',
+      'submitted' => l10n.statusSubmitted,
+      'verified' => l10n.statusVerified,
+      _ => l10n.statusDraft,
     };
     final color = switch (normalized) {
       'submitted' => AppColors.alertMedium,
@@ -679,3 +700,95 @@ class _StatusBadge extends StatelessWidget {
     );
   }
 }
+
+// ── Language banner ──────────────────────────────────────────────────────────
+
+class _LanguageBanner extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    // Find the active language from the current locale
+    final code = Localizations.localeOf(context).languageCode;
+    final lang = _kLanguages.firstWhere(
+      (l) => l.code == code,
+      orElse: () => _kLanguages.first,
+    );
+
+    return InkWell(
+      onTap: () => showLanguagePickerSheet(context),
+      borderRadius: BorderRadius.circular(AppRadii.l),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: AppColors.primary.withValues(alpha: 0.07),
+          borderRadius: BorderRadius.circular(AppRadii.l),
+          border: Border.all(
+            color: AppColors.primary.withValues(alpha: 0.18),
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.language_outlined,
+                color: AppColors.primary,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.language,
+                    style: const TextStyle(
+                      color: AppColors.textMuted,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.4,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${lang.nativeName}  ·  ${lang.name}',
+                    style: const TextStyle(
+                      color: AppColors.primary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.chevron_right,
+              color: AppColors.primary,
+              size: 20,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+const _kLanguages = [
+  (code: 'en', name: 'English', nativeName: 'English'),
+  (code: 'hi', name: 'Hindi', nativeName: 'हिन्दी'),
+  (code: 'ml', name: 'Malayalam', nativeName: 'മലയാളം'),
+  (code: 'ta', name: 'Tamil', nativeName: 'தமிழ்'),
+  (code: 'te', name: 'Telugu', nativeName: 'తెలుగు'),
+  (code: 'gu', name: 'Gujarati', nativeName: 'ગુજરાતી'),
+  (code: 'ur', name: 'Urdu', nativeName: 'اردو'),
+  (code: 'kn', name: 'Kannada', nativeName: 'ಕನ್ನಡ'),
+  (code: 'pa', name: 'Punjabi', nativeName: 'ਪੰਜਾਬੀ'),
+  (code: 'mr', name: 'Marathi', nativeName: 'मराठी'),
+  (code: 'or', name: 'Odia', nativeName: 'ଓଡ଼ିଆ'),
+];

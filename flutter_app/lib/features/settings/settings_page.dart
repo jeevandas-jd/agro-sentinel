@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:agrisentinel/l10n/app_localizations.dart';
 
+import '../../core/providers/locale_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../main.dart' show AppLocaleScope;
+import '../../widgets/language_picker_sheet.dart';
 import '../../widgets/feature_card.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -25,6 +29,7 @@ class _SettingsPageState extends State<SettingsPage> {
   bool _isProcessing = false;
 
   Future<void> _showChangePasswordDialog() async {
+    final l10n = AppLocalizations.of(context);
     final currentController = TextEditingController();
     final newController = TextEditingController();
     final formKey = GlobalKey<FormState>();
@@ -34,7 +39,7 @@ class _SettingsPageState extends State<SettingsPage> {
       builder: (context) {
         return AlertDialog(
           backgroundColor: AppColors.card,
-          title: const Text('Change Password'),
+          title: Text(l10n.changePasswordTitle),
           content: Form(
             key: formKey,
             child: Column(
@@ -43,12 +48,12 @@ class _SettingsPageState extends State<SettingsPage> {
                 TextFormField(
                   controller: currentController,
                   obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Current password',
+                  decoration: InputDecoration(
+                    labelText: l10n.currentPassword,
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Current password is required';
+                      return l10n.currentPasswordRequired;
                     }
                     return null;
                   },
@@ -57,10 +62,10 @@ class _SettingsPageState extends State<SettingsPage> {
                 TextFormField(
                   controller: newController,
                   obscureText: true,
-                  decoration: const InputDecoration(labelText: 'New password'),
+                  decoration: InputDecoration(labelText: l10n.newPassword),
                   validator: (value) {
                     if (value == null || value.length < 6) {
-                      return 'New password must be at least 6 characters';
+                      return l10n.newPasswordMinLength;
                     }
                     return null;
                   },
@@ -71,7 +76,7 @@ class _SettingsPageState extends State<SettingsPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
+              child: Text(l10n.cancel),
             ),
             ElevatedButton(
               onPressed: () async {
@@ -86,26 +91,20 @@ class _SettingsPageState extends State<SettingsPage> {
                     currentController.text,
                     newController.text,
                   );
-                  if (!mounted) {
-                    return;
-                  }
+                  if (!mounted) return;
                   messenger.showSnackBar(
-                    const SnackBar(content: Text('Password updated')),
+                    SnackBar(content: Text(l10n.passwordUpdated)),
                   );
                 } catch (error) {
-                  if (!mounted) {
-                    return;
-                  }
+                  if (!mounted) return;
                   messenger.showSnackBar(
                     SnackBar(content: Text(error.toString())),
                   );
                 } finally {
-                  if (mounted) {
-                    setState(() => _isProcessing = false);
-                  }
+                  if (mounted) setState(() => _isProcessing = false);
                 }
               },
-              child: const Text('Update'),
+              child: Text(l10n.update),
             ),
           ],
         );
@@ -116,82 +115,102 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _confirmDelete() async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) {
         return AlertDialog(
           backgroundColor: AppColors.card,
-          title: const Text('Delete Account'),
-          content: const Text(
-            'This will permanently remove your account and log you out.',
-          ),
+          title: Text(l10n.deleteAccountTitle),
+          content: Text(l10n.deleteAccountConfirmation),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
+              child: Text(l10n.cancel),
             ),
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Delete'),
+              child: Text(l10n.delete),
             ),
           ],
         );
       },
     );
-    if (confirmed != true) {
-      return;
-    }
+    if (confirmed != true) return;
     setState(() => _isProcessing = true);
     try {
       await widget.onDeleteAccount();
     } finally {
-      if (mounted) {
-        setState(() => _isProcessing = false);
-      }
+      if (mounted) setState(() => _isProcessing = false);
     }
   }
 
+  void _showLanguagePicker() => showLanguagePickerSheet(context);
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final provider = AppLocaleScope.of(context);
+    final currentLang = LocaleProvider.supportedLanguages.firstWhere(
+      (l) => l.code == provider.locale.languageCode,
+      orElse: () => LocaleProvider.supportedLanguages.first,
+    );
+
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: AppBar(title: Text(l10n.settingsTitle)),
       body: Stack(
         children: [
           ListView(
             padding: const EdgeInsets.all(16),
             children: [
+              // ── Language ────────────────────────────────────────────────
+              FeatureCard(
+                icon: Icons.language_outlined,
+                title: l10n.language,
+                subtitle: '${currentLang.nativeName} · ${currentLang.name}',
+                onTap: _showLanguagePicker,
+                trailing: const Icon(
+                  Icons.chevron_right,
+                  color: AppColors.textMuted,
+                ),
+              ),
+              const SizedBox(height: 8),
+
+              // ── Notifications ────────────────────────────────────────────
               SwitchListTile(
                 value: _pushNotifications,
                 onChanged: (value) =>
                     setState(() => _pushNotifications = value),
-                title: const Text('Push notifications'),
-                subtitle: const Text('Receive app alerts for new hotspots'),
+                title: Text(l10n.pushNotifications),
+                subtitle: Text(l10n.pushNotificationsSubtitle),
               ),
               SwitchListTile(
                 value: _emailAlerts,
                 onChanged: (value) => setState(() => _emailAlerts = value),
-                title: const Text('Email alerts'),
-                subtitle: const Text('Get claim and advisory updates by email'),
+                title: Text(l10n.emailAlerts),
+                subtitle: Text(l10n.emailAlertsSubtitle),
               ),
               SwitchListTile(
                 value: _offlineSync,
                 onChanged: (value) => setState(() => _offlineSync = value),
-                title: const Text('Offline sync'),
-                subtitle: const Text('Cache field data for low connectivity'),
+                title: Text(l10n.offlineSync),
+                subtitle: Text(l10n.offlineSyncSubtitle),
               ),
               const SizedBox(height: 10),
+
+              // ── Account ──────────────────────────────────────────────────
               FeatureCard(
                 icon: Icons.lock_outline,
-                title: 'Change password',
-                subtitle: 'Update your account credentials',
+                title: l10n.changePassword,
+                subtitle: l10n.changePasswordSubtitle,
                 onTap: _showChangePasswordDialog,
               ),
               const SizedBox(height: 8),
               FeatureCard(
                 icon: Icons.delete_outline,
-                title: 'Delete account',
-                subtitle: 'Permanently remove your account',
+                title: l10n.deleteAccount,
+                subtitle: l10n.deleteAccountSubtitle,
                 onTap: _confirmDelete,
                 trailing: const Icon(
                   Icons.warning_amber_rounded,
