@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart'; // rootBundle
 import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// ─────────────────────────────────────────────────────────────────────────────
 ///  Canopy Constant — average canopy footprint per mature tree (m²)
@@ -16,7 +17,7 @@ import 'package:http/http.dart' as http;
 const double kCanopyConstant = 25.0; // ← m² per tree  ★ TUNE THIS ★
 
 class SatelliteService {
-  static const String _groqApiKey = 'YOUR_GROQ_API_KEY'; // 🔑
+  static String get _groqApiKey => dotenv.env['GROQ_API_KEY']!; // 🔑
   static const String _endpoint =
       'https://api.groq.com/openai/v1/chat/completions';
   static const String _model = 'meta-llama/llama-4-maverick-17b-128e-instruct';
