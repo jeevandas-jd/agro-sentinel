@@ -20,12 +20,15 @@ fun encodeDartDefine(entry: String): String =
 
 val mapsApiKeyForManifest = localProperties.getProperty("MAPS_API_KEY") ?: ""
 val geminiApiKeyForDart = localProperties.getProperty("GEMINI_API_KEY") ?: ""
+val groqApiKeyForDart = localProperties.getProperty("GROQ_API_KEY") ?: ""
 
 val localDartDefineEncodings = listOfNotNull(
     mapsApiKeyForManifest.takeIf { it.isNotBlank() }
         ?.let { encodeDartDefine("MAPS_API_KEY=$it") },
     geminiApiKeyForDart.takeIf { it.isNotBlank() }
         ?.let { encodeDartDefine("GEMINI_API_KEY=$it") },
+    groqApiKeyForDart.takeIf { it.isNotBlank() }
+        ?.let { encodeDartDefine("GROQ_API_KEY=$it") },
 )
 
 val flutterDartDefines = project.findProperty("dart-defines")?.toString()?.trim().orEmpty()
@@ -78,6 +81,11 @@ android {
             "String",
             "GEMINI_API_KEY",
             geminiApiKeyForDart.escapeForBuildConfigString(),
+        )
+        buildConfigField(
+            "String",
+            "GROQ_API_KEY",
+            groqApiKeyForDart.escapeForBuildConfigString(),
         )
     }
 

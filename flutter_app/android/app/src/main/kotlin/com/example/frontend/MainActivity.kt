@@ -13,6 +13,7 @@ class MainActivity : FlutterActivity() {
         ).setMethodCallHandler { call, result ->
             when (call.method) {
                 "getGeminiApiKey" -> result.success(BuildConfig.GEMINI_API_KEY)
+                "getGroqApiKey" -> result.success(BuildConfig.GROQ_API_KEY)
                 else -> result.notImplemented()
             }
         }
