@@ -23,6 +23,12 @@ class DisasterEventModel {
   final double affectedAreaHa; // SatelliteService → 'affected_area_ha'
   final String satelliteSummary; // SatelliteService → 'summary'
   final String? capturedImagePath; // on-device photo from CameraScreen
+
+  /// Runtime-only: Groq vision (satellite before/after) — not read from Firestore.
+  final bool satelliteGroqOk;
+  final String satelliteGroqError;
+  final double satelliteGroqConfidence; // 0–1 from Groq JSON, not TFLite
+  final String satelliteGroqDetailsJson; // pretty JSON of groq_response for Gemini
   // ─────────────────────────────────────────────────────────────────────────
 
   const DisasterEventModel({
@@ -45,6 +51,10 @@ class DisasterEventModel {
     this.affectedAreaHa = 0.0,
     this.satelliteSummary = '',
     this.capturedImagePath,
+    this.satelliteGroqOk = false,
+    this.satelliteGroqError = '',
+    this.satelliteGroqConfidence = 0.0,
+    this.satelliteGroqDetailsJson = '',
   });
 
   int get damagedHotspotsCount => hotspots
@@ -71,6 +81,10 @@ class DisasterEventModel {
     double? affectedAreaHa,
     String? satelliteSummary,
     String? capturedImagePath,
+    bool? satelliteGroqOk,
+    String? satelliteGroqError,
+    double? satelliteGroqConfidence,
+    String? satelliteGroqDetailsJson,
   }) {
     return DisasterEventModel(
       id: id ?? this.id,
@@ -91,6 +105,12 @@ class DisasterEventModel {
       affectedAreaHa: affectedAreaHa ?? this.affectedAreaHa,
       satelliteSummary: satelliteSummary ?? this.satelliteSummary,
       capturedImagePath: capturedImagePath ?? this.capturedImagePath,
+      satelliteGroqOk: satelliteGroqOk ?? this.satelliteGroqOk,
+      satelliteGroqError: satelliteGroqError ?? this.satelliteGroqError,
+      satelliteGroqConfidence:
+          satelliteGroqConfidence ?? this.satelliteGroqConfidence,
+      satelliteGroqDetailsJson:
+          satelliteGroqDetailsJson ?? this.satelliteGroqDetailsJson,
     );
   }
 

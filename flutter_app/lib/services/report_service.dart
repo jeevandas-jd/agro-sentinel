@@ -4,6 +4,7 @@ import '../core/dart_define_config.dart';
 import '../models/disaster_event_model.dart';
 import 'ai_narrative_service.dart';
 import 'gemini_narrative_client.dart';
+import 'satellite_service.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 //  ReportContent — structured output handed to the PDF / Dossier screen.
@@ -108,6 +109,11 @@ class ReportService {
           (satellite['affected_area_ha'] as num?)?.toDouble() ?? 0.0,
       satelliteSummary: (satellite['summary'] as String?) ?? '',
       capturedImagePath: capturedImagePath,
+      satelliteGroqOk: satellite['groq_ok'] as bool? ?? false,
+      satelliteGroqError: (satellite['groq_error'] as String?)?.trim() ?? '',
+      satelliteGroqConfidence: SatelliteService.groqModelConfidence(satellite),
+      satelliteGroqDetailsJson:
+          SatelliteService.groqResponseJsonForNarrative(satellite),
     );
 
     // ── 3. Generate the AI narrative via AINarrativeService ──────────────────

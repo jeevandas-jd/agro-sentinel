@@ -17,7 +17,10 @@ class GeminiNarrativeClient {
   static const _requestTimeout = Duration(seconds: 60);
 
   static const _system =
-      'You are a certified agricultural insurance assessment officer.';
+      'You are a certified agricultural insurance assessment officer. '
+      'When the prompt includes Groq satellite vision JSON alongside on-device TFLite '
+      'photo results, synthesize both: ground-level classification per hotspot and '
+      'remote canopy metrics, without double-counting or inventing figures.';
 
   static Future<String> complete({
     required String apiKey,
@@ -44,7 +47,8 @@ class GeminiNarrativeClient {
               ],
               'generationConfig': {
                 'temperature': 0.2,
-                'maxOutputTokens': 1024,
+                // Long dossier copy (TFLite + Groq JSON context); avoid mid-sentence cutoffs.
+                'maxOutputTokens': 2048,
               },
             }),
           )

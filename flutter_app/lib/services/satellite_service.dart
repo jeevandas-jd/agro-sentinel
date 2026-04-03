@@ -234,4 +234,26 @@ Rules:
     'destroyed_area_m2': 0.0,
     'summary': 'Analysis unavailable.',
   };
+
+  /// Pretty JSON of `groq_response` from [analyze] for Gemini / dossier prompts.
+  static String groqResponseJsonForNarrative(Map<String, dynamic> satellite) {
+    final r = satellite['groq_response'];
+    if (r is! Map) return '';
+    try {
+      return const JsonEncoder.withIndent('  ').convert(
+        Map<String, dynamic>.from(r),
+      );
+    } catch (_) {
+      return '';
+    }
+  }
+
+  /// Groq self-reported confidence in 0–1 (not the on-device TFLite score).
+  static double groqModelConfidence(Map<String, dynamic> satellite) {
+    final r = satellite['groq_response'];
+    if (r is Map && r['confidence'] is num) {
+      return (r['confidence'] as num).toDouble();
+    }
+    return 0.0;
+  }
 }

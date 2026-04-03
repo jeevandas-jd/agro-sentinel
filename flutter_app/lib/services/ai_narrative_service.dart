@@ -62,6 +62,13 @@ class AINarrativeService {
         ? '${(event.confidence * 100).toStringAsFixed(1)}% (from merged pipeline when available)'
         : 'not set (use per-hotspot TFLite rows below instead)';
 
+    final groqJson = event.satelliteGroqDetailsJson.trim();
+    final groqErr = event.satelliteGroqError.trim();
+    final groqConfLine = event.satelliteGroqConfidence > 0
+        ? '${(event.satelliteGroqConfidence * 100).toStringAsFixed(1)}% '
+            '(Groq vision model self-assessment; separate from TFLite above)'
+        : 'n/a';
+
     return '''
 You are a certified agricultural insurance officer writing a formal damage
 assessment paragraph for an insurance claim dossier.
@@ -97,19 +104,32 @@ Merged pipeline confidence (optional)         : $pipelineConf
 Per hotspot (use these rows; do not invent extra locations):
 ${tf.perHotspotLines}
 
-── Satellite / remote analysis (may be zero if not run) ─
+── Groq cloud vision (satellite before/after tiles, separate API from TFLite) ─
+Call succeeded              : ${event.satelliteGroqOk ? 'yes' : 'no'}
+${groqErr.isNotEmpty ? 'Groq / satellite API error     : $groqErr\n' : ''}Groq model confidence         : $groqConfLine
+
+Parsed JSON returned by Groq (authoritative for remote sensing when call succeeded;
+if call failed, treat numbers below as placeholders — do not present them as verified):
+${groqJson.isEmpty ? '(none — satellite/Groq step not run, failed, or returned no payload)' : groqJson}
+
+── Satellite roll-up (aligned with Groq JSON when call succeeded) ─
 Damage score        : ${event.damageScore.toStringAsFixed(1)} / 100
 Affected area       : ${event.affectedAreaHa.toStringAsFixed(2)} ha
 Destroyed canopy    : ${event.destroyedAreaM2.toStringAsFixed(0)} m²
-Satellite summary   : ${event.satelliteSummary.isEmpty ? '(none)' : event.satelliteSummary}
+Narrative summary   : ${event.satelliteSummary.isEmpty ? '(none)' : event.satelliteSummary}
 On-device photo path (debug) : ${event.capturedImagePath ?? '(none)'}
 
 ── Instructions ──────────────────────────────────────
 Write 3–5 sentences in formal insurance English.
-Prioritise the TFLite per-hotspot results and their confidences.
-Mention how many locations were analysed and how many classified as damaged.
-Include crop, survey/area where relevant, incident date, and estimated loss or tree
-counts from the data above. Do not invent numbers not listed.
+Integrate BOTH: (1) TFLite per-hotspot field photos and (2) Groq satellite comparison
+when the Groq call succeeded. Mention Groq-reported damage score, areas, summary, and
+its self-confidence where relevant. If Groq did not succeed, briefly note that remote
+sensing was unavailable or failed${groqErr.isNotEmpty ? ' (see error above)' : ''} and rely on TFLite and the farmer statement.
+Do not treat Groq numeric fields as verified facts when "Call succeeded" is no.
+Prioritise TFLite for ground-truth at each hotspot; use Groq to describe wider canopy
+loss context when available. Mention how many locations were analysed and how many
+classified as damaged. Include crop, survey/area where relevant, incident date, and
+estimated loss or tree counts from the data above. Do not invent numbers not listed.
 ''';
   }
 
@@ -141,12 +161,21 @@ counts from the data above. Do not invent numbers not listed.
             '${event.satelliteSummary.isNotEmpty ? '; summary: ${event.satelliteSummary}' : ''}. '
         : '';
 
+    final groqLine = event.satelliteGroqOk
+        ? 'Groq vision (satellite tiles) reported model confidence '
+            '${(event.satelliteGroqConfidence * 100).toStringAsFixed(0)}% '
+            'with automated summary aligned to remote sensing. '
+        : (event.satelliteGroqError.trim().isNotEmpty
+            ? 'Groq satellite analysis did not complete (${event.satelliteGroqError.trim()}). '
+            : '');
+
     return 'A damage assessment was conducted for the $crop plantation '
         '(Survey No. $survey, $area ha) following the ${event.disasterType} '
         'incident on ${_date(event.occurredAt)}. '
         'Farmer statement: "${event.farmerDescription}". '
         '$camLine'
         '$satLine'
+        '$groqLine'
         'Estimated economic exposure (from event): '
         '${event.estimatedLossInr.toStringAsFixed(0)} INR.';
   }

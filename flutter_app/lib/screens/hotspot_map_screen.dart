@@ -9,6 +9,7 @@ import '../models/farmer_model.dart';
 import '../models/hotspot_model.dart';
 import '../services/ai_narrative_service.dart';
 import '../services/disaster_event_service.dart';
+import '../services/satellite_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/tutorial_wrapper.dart';
 import 'camera_capture_screen.dart';
@@ -148,13 +149,41 @@ class _HotspotMapScreenState extends State<HotspotMapScreen> {
 
     final treesLost = _hotspots.fold<int>(0, (sum, hotspot) => sum + hotspot.treesLost);
 
+    Map<String, dynamic>? satellite;
+    try {
+      satellite = await SatelliteService.analyze(
+        widget.farm.center.latitude,
+        widget.farm.center.longitude,
+      );
+    } catch (_) {
+      satellite = null;
+    }
+
     // Build event with real hotspot results so the narrative service has full data.
-    final eventWithResults = widget.initialEvent.copyWith(
+    var eventWithResults = widget.initialEvent.copyWith(
       hotspots: _hotspots,
       totalTreesLost: treesLost,
       estimatedLossInr: treesLost * 2500,
       status: 'submitted',
     );
+
+    if (satellite != null) {
+      final destroyedM2 =
+          (satellite['destroyed_area_m2'] as num?)?.toDouble() ?? 0.0;
+      eventWithResults = eventWithResults.copyWith(
+        damageScore: (satellite['damage_score'] as num?)?.toDouble() ?? 0.0,
+        affectedAreaHa:
+            (satellite['affected_area_ha'] as num?)?.toDouble() ?? 0.0,
+        destroyedAreaM2: destroyedM2,
+        satelliteSummary: (satellite['summary'] as String?) ?? '',
+        satelliteGroqOk: satellite['groq_ok'] as bool? ?? false,
+        satelliteGroqError: (satellite['groq_error'] as String?)?.trim() ?? '',
+        satelliteGroqConfidence:
+            SatelliteService.groqModelConfidence(satellite),
+        satelliteGroqDetailsJson:
+            SatelliteService.groqResponseJsonForNarrative(satellite),
+      );
+    }
 
     // Generate a data-driven narrative from actual analysis results.
     final narrative =

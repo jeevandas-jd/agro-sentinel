@@ -188,18 +188,37 @@ class _DossierReviewScreenState extends State<DossierReviewScreen> {
           _SectionCard(
             title: 'AI narrative',
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 if (_narrativeLoading)
                   const LinearProgressIndicator()
                 else
-                  Text(
-                    _previewNarrative ??
-                        event.aiNarrative ??
-                        'Narrative not available.',
+                  Container(
+                    width: double.infinity,
+                    constraints: const BoxConstraints(minHeight: 200),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 12,
+                      horizontal: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .surfaceContainerHighest
+                          .withValues(alpha: 0.35),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: SelectableText(
+                      _previewNarrative ??
+                          event.aiNarrative ??
+                          'Narrative not available.',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            height: 1.55,
+                            fontSize: 15,
+                          ),
+                    ),
                   ),
                 if (!_narrativeLoading) ...[
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   if (!_geminiKeyAvailable)
                     Text(
                       'Template narrative only. Add GEMINI_API_KEY to '
@@ -208,9 +227,12 @@ class _DossierReviewScreenState extends State<DossierReviewScreen> {
                             color: AppColors.textSecondary,
                           ),
                     ),
-                  TextButton(
-                    onPressed: () => unawaited(_loadPreviewNarrative()),
-                    child: const Text('Regenerate narrative'),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton(
+                      onPressed: () => unawaited(_loadPreviewNarrative()),
+                      child: const Text('Regenerate narrative'),
+                    ),
                   ),
                 ],
               ],
