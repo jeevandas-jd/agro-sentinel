@@ -52,9 +52,9 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.message)));
     } finally {
       if (mounted) {
         setState(() => _isSubmitting = false);
@@ -183,11 +183,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: AppSpacing.x2),
                   ],
                   const Text(
-                    'Agro Sentinel v1.0 — Gradient Descent',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 12,
-                    ),
+                    'Agro Sentinel v4.0 — Gradient Descent',
+                    style: TextStyle(color: Colors.white70, fontSize: 12),
                   ),
                 ],
               ),

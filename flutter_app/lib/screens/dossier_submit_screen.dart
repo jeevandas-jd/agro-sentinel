@@ -1,7 +1,25 @@
 import 'package:flutter/material.dart';
 
+import '../models/disaster_event_model.dart';
+import '../models/farm_model.dart';
+import '../models/farmer_model.dart';
+import '../services/damage_preview_pdf_service.dart';
+import '../theme/app_theme.dart';
+
 class DossierSubmitScreen extends StatefulWidget {
-  const DossierSubmitScreen({super.key});
+  final FarmModel farm;
+  final FarmerModel farmer;
+  final DisasterEventModel event;
+  /// Narrative text as shown on the damage preview (may differ from [event.aiNarrative]).
+  final String narrativeText;
+
+  const DossierSubmitScreen({
+    super.key,
+    required this.farm,
+    required this.farmer,
+    required this.event,
+    required this.narrativeText,
+  });
 
   @override
   State<DossierSubmitScreen> createState() => _DossierSubmitScreenState();
@@ -10,6 +28,7 @@ class DossierSubmitScreen extends StatefulWidget {
 class _DossierSubmitScreenState extends State<DossierSubmitScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
+  bool _pdfLoading = false;
 
   @override
   void initState() {
@@ -24,6 +43,33 @@ class _DossierSubmitScreenState extends State<DossierSubmitScreen>
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  Future<void> _downloadPdf() async {
+    if (_pdfLoading) return;
+    setState(() => _pdfLoading = true);
+    try {
+      await DamagePreviewPdfService.printDamageReport(
+        farm: widget.farm,
+        farmer: widget.farmer,
+        event: widget.event,
+        narrativeText: widget.narrativeText,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('PDF ready — use Save or Share from the preview.')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Could not build PDF: $e'),
+          backgroundColor: AppColors.alertHigh,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _pdfLoading = false);
+    }
   }
 
   @override
@@ -51,13 +97,16 @@ class _DossierSubmitScreenState extends State<DossierSubmitScreen>
                 style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800),
               ),
               const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('PDF download started.')),
-                  );
-                },
-                child: const Text('PDF download'),
+              ElevatedButton.icon(
+                onPressed: _pdfLoading ? null : _downloadPdf,
+                icon: _pdfLoading
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.picture_as_pdf_outlined),
+                label: Text(_pdfLoading ? 'Building PDF…' : 'PDF download'),
               ),
               const SizedBox(height: 10),
               OutlinedButton(

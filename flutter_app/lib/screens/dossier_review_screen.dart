@@ -256,8 +256,17 @@ class _DossierReviewScreenState extends State<DossierReviewScreen> {
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () {
+              final narrativeForSubmit =
+                  _previewNarrative ?? event.aiNarrative ?? '';
               Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const DossierSubmitScreen()),
+                MaterialPageRoute(
+                  builder: (_) => DossierSubmitScreen(
+                    farm: widget.farm,
+                    farmer: widget.farmer,
+                    event: event,
+                    narrativeText: narrativeForSubmit,
+                  ),
+                ),
               );
             },
             child: const Text('Generate PDF Report'),
