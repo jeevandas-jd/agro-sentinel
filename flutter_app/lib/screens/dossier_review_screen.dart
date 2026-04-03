@@ -1,8 +1,13 @@
-import 'package:flutter/material.dart';
+import 'dart:async' show unawaited;
 
+import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
+
+import '../core/dart_define_config.dart';
 import '../models/disaster_event_model.dart';
 import '../models/farm_model.dart';
 import '../models/farmer_model.dart';
+import '../services/ai_narrative_service.dart';
 import '../theme/app_theme.dart';
 import 'dossier_submit_screen.dart';
 import '../widgets/tutorial_wrapper.dart';
@@ -25,11 +30,52 @@ class DossierReviewScreen extends StatefulWidget {
 
 class _DossierReviewScreenState extends State<DossierReviewScreen> {
   late String _farmerDescription;
+  String? _previewNarrative;
+  bool _narrativeLoading = false;
+  bool _geminiKeyAvailable = false;
 
   @override
   void initState() {
     super.initState();
     _farmerDescription = widget.event.farmerDescription;
+    _previewNarrative = widget.event.aiNarrative;
+    // Avoid flashing the map-step template: we resolve the key first, then either
+    // always call Gemini (key present) or keep/show template (no key).
+    _narrativeLoading = true;
+
+    SchedulerBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      final key = await loadGeminiApiKey();
+      if (!mounted) return;
+      setState(() => _geminiKeyAvailable = key.isNotEmpty);
+
+      if (key.isNotEmpty) {
+        // Event may already carry a fallback template from HotspotMapScreen; refresh.
+        await _loadPreviewNarrative();
+      } else {
+        final missing =
+            _previewNarrative == null || _previewNarrative!.trim().isEmpty;
+        if (missing) {
+          await _loadPreviewNarrative();
+        } else if (mounted) {
+          setState(() => _narrativeLoading = false);
+        }
+      }
+    });
+  }
+
+  Future<void> _loadPreviewNarrative() async {
+    if (!mounted) return;
+    setState(() => _narrativeLoading = true);
+    final event =
+        widget.event.copyWith(farmerDescription: _farmerDescription);
+    final text =
+        await narrativeServiceWithOptionalGemini().generateNarrative(event);
+    if (!mounted) return;
+    setState(() {
+      _previewNarrative = text;
+      _narrativeLoading = false;
+    });
   }
 
   Future<void> _editDescription() async {
@@ -62,6 +108,7 @@ class _DossierReviewScreenState extends State<DossierReviewScreen> {
       return;
     }
     setState(() => _farmerDescription = value);
+    unawaited(_loadPreviewNarrative());
   }
 
   @override
@@ -140,9 +187,33 @@ class _DossierReviewScreenState extends State<DossierReviewScreen> {
           const SizedBox(height: 12),
           _SectionCard(
             title: 'AI narrative',
-            child: Text(
-              event.aiNarrative ??
-                  'AI narrative will be generated once report is submitted.',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (_narrativeLoading)
+                  const LinearProgressIndicator()
+                else
+                  Text(
+                    _previewNarrative ??
+                        event.aiNarrative ??
+                        'Narrative not available.',
+                  ),
+                if (!_narrativeLoading) ...[
+                  const SizedBox(height: 8),
+                  if (!_geminiKeyAvailable)
+                    Text(
+                      'Template narrative only. Add GEMINI_API_KEY to '
+                      'android/local.properties and rebuild the app.',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                    ),
+                  TextButton(
+                    onPressed: () => unawaited(_loadPreviewNarrative()),
+                    child: const Text('Regenerate narrative'),
+                  ),
+                ],
+              ],
             ),
           ),
           const SizedBox(height: 12),

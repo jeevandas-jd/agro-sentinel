@@ -1,6 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+
+import '../core/dart_define_config.dart';
 import '../models/disaster_event_model.dart';
 import '../models/farm_model.dart';
+import '../models/hotspot_model.dart';
+import 'gemini_narrative_client.dart';
 
 typedef NarrativeModelCaller = Future<String> Function(String prompt);
 
@@ -53,37 +57,59 @@ class AINarrativeService {
     final crop = _s(farm?.cropType, 'Unknown');
     final survey = _s(farm?.surveyNumber, 'Unknown');
     final area = (farm?.areaHectares ?? 0).toStringAsFixed(2);
+    final tf = _tfliteRollup(event.hotspots);
+    final pipelineConf = event.confidence > 0
+        ? '${(event.confidence * 100).toStringAsFixed(1)}% (from merged pipeline when available)'
+        : 'not set (use per-hotspot TFLite rows below instead)';
 
     return '''
 You are a certified agricultural insurance officer writing a formal damage
 assessment paragraph for an insurance claim dossier.
 
 ── Farm ──────────────────────────────────────────────
+Farm name   : ${_s(farm?.name, 'N/A')}
 Crop        : $crop plantation
 Survey No.  : $survey
 Area        : $area ha
 
 ── Incident ──────────────────────────────────────────
 Type        : ${event.disasterType}
-Date        : ${_date(event.occurredAt)}
+Occurred    : ${_date(event.occurredAt)}
+Reported    : ${_date(event.reportedAt)}
+Status      : ${event.status}
 Farmer note : ${event.farmerDescription}
 
-── Camera AI (TFLite on-device) ──────────────────────
-Locations surveyed  : ${event.hotspots.length}
-Locations damaged   : ${event.damagedHotspotsCount}
-Model confidence    : ${(event.confidence * 100).toStringAsFixed(1)}%
+── On-device damage model (TFLite, binary damaged vs healthy) ─
+Model asset : bundled classifier on captured field photos (resize + ImageNet norm).
+Hotspots total      : ${tf.total}
+Photos analysed     : ${tf.analysed}
+Pending / no result : ${tf.pending}
+Class DAMAGED       : ${tf.damagedCount}
+Class HEALTHY       : ${tf.healthyCount}
+Mean confidence (damaged hotspots only)   : ${tf.meanConfDamaged}
+Mean confidence (healthy hotspots only)     : ${tf.meanConfHealthy}
+Mean confidence (all analysed hotspots)     : ${tf.meanConfAll}
+Trees lost (sum of hotspot estimates)       : ${tf.treesSumFromHotspots}
+Event total_trees_lost field (authoritative if set): ${event.totalTreesLost}
+Estimated loss (INR, from event)              : ${event.estimatedLossInr.toStringAsFixed(0)}
+Merged pipeline confidence (optional)         : $pipelineConf
 
-── Satellite analysis ────────────────────────────────
+Per hotspot (use these rows; do not invent extra locations):
+${tf.perHotspotLines}
+
+── Satellite / remote analysis (may be zero if not run) ─
 Damage score        : ${event.damageScore.toStringAsFixed(1)} / 100
 Affected area       : ${event.affectedAreaHa.toStringAsFixed(2)} ha
 Destroyed canopy    : ${event.destroyedAreaM2.toStringAsFixed(0)} m²
-Trees lost          : ${event.totalTreesLost}
-Summary             : ${event.satelliteSummary}
+Satellite summary   : ${event.satelliteSummary.isEmpty ? '(none)' : event.satelliteSummary}
+On-device photo path (debug) : ${event.capturedImagePath ?? '(none)'}
 
 ── Instructions ──────────────────────────────────────
-Write 3–4 sentences in formal insurance English.
-Be factual. Mention crop type, area, damage score,
-trees lost, and incident date. Do not invent data.
+Write 3–5 sentences in formal insurance English.
+Prioritise the TFLite per-hotspot results and their confidences.
+Mention how many locations were analysed and how many classified as damaged.
+Include crop, survey/area where relevant, incident date, and estimated loss or tree
+counts from the data above. Do not invent numbers not listed.
 ''';
   }
 
@@ -94,19 +120,35 @@ trees lost, and incident date. Do not invent data.
     final crop = _s(farm?.cropType, 'the');
     final survey = _s(farm?.surveyNumber, 'N/A');
     final area = (farm?.areaHectares ?? 0).toStringAsFixed(2);
+    final tf = _tfliteRollup(event.hotspots);
+    final camLine = tf.analysed > 0
+        ? 'On-device TFLite analysis covered ${tf.analysed} photo(s) at '
+            '${event.hotspots.length} hotspot(s): ${tf.damagedCount} classified DAMAGED, '
+            '${tf.healthyCount} HEALTHY, pending ${tf.pending}. '
+            'Mean model confidence on damaged plots was ${tf.meanConfDamaged}; '
+            'tree loss estimated from hotspots totals ${tf.treesSumFromHotspots} '
+            '(event roll-up: ${event.totalTreesLost}). '
+        : 'Field photos and TFLite results were not yet available for all hotspots '
+            '(${event.hotspots.length} marked). ';
+
+    final satLine = event.damageScore > 0 ||
+            event.affectedAreaHa > 0 ||
+            event.destroyedAreaM2 > 0 ||
+            event.satelliteSummary.isNotEmpty
+        ? 'Remote/satellite indicators: damage score ${event.damageScore.toStringAsFixed(1)}/100, '
+            '${event.affectedAreaHa.toStringAsFixed(2)} ha affected, '
+            '${event.destroyedAreaM2.toStringAsFixed(0)} m² canopy loss'
+            '${event.satelliteSummary.isNotEmpty ? '; summary: ${event.satelliteSummary}' : ''}. '
+        : '';
 
     return 'A damage assessment was conducted for the $crop plantation '
-        '(Survey No. $survey, $area ha) following the '
-        '${event.disasterType} incident on ${_date(event.occurredAt)}. '
-        'Farmer testimony: "${event.farmerDescription}". '
-        'On-field camera AI recorded ${(event.confidence * 100).toStringAsFixed(1)}% '
-        'confidence of damage across ${event.damagedHotspotsCount} of '
-        '${event.hotspots.length} surveyed locations. '
-        'Satellite analysis returned a damage score of '
-        '${event.damageScore.toStringAsFixed(1)}/100, with '
-        '${event.affectedAreaHa.toStringAsFixed(2)} ha affected, '
-        '${event.destroyedAreaM2.toStringAsFixed(0)} m² of canopy destroyed, '
-        'and an estimated ${event.totalTreesLost} trees lost.';
+        '(Survey No. $survey, $area ha) following the ${event.disasterType} '
+        'incident on ${_date(event.occurredAt)}. '
+        'Farmer statement: "${event.farmerDescription}". '
+        '$camLine'
+        '$satLine'
+        'Estimated economic exposure (from event): '
+        '${event.estimatedLossInr.toStringAsFixed(0)} INR.';
   }
 
   String _s(String? v, String fallback) =>
@@ -116,4 +158,133 @@ trees lost, and incident date. Do not invent data.
       '${dt.year.toString().padLeft(4, '0')}-'
       '${dt.month.toString().padLeft(2, '0')}-'
       '${dt.day.toString().padLeft(2, '0')}';
+}
+
+class _TfliteRollup {
+  const _TfliteRollup({
+    required this.total,
+    required this.analysed,
+    required this.pending,
+    required this.damagedCount,
+    required this.healthyCount,
+    required this.meanConfDamaged,
+    required this.meanConfHealthy,
+    required this.meanConfAll,
+    required this.treesSumFromHotspots,
+    required this.perHotspotLines,
+  });
+
+  final int total;
+  final int analysed;
+  final int pending;
+  final int damagedCount;
+  final int healthyCount;
+  final String meanConfDamaged;
+  final String meanConfHealthy;
+  final String meanConfAll;
+  final int treesSumFromHotspots;
+  final String perHotspotLines;
+}
+
+const _kMaxHotspotLinesInPrompt = 30;
+
+_TfliteRollup _tfliteRollup(List<HotspotModel> hotspots) {
+  if (hotspots.isEmpty) {
+    return const _TfliteRollup(
+      total: 0,
+      analysed: 0,
+      pending: 0,
+      damagedCount: 0,
+      healthyCount: 0,
+      meanConfDamaged: 'n/a',
+      meanConfHealthy: 'n/a',
+      meanConfAll: 'n/a',
+      treesSumFromHotspots: 0,
+      perHotspotLines: '  (no hotspots)',
+    );
+  }
+
+  final damaged = <double>[];
+  final healthy = <double>[];
+  final all = <double>[];
+  var damagedCount = 0;
+  var healthyCount = 0;
+  var pending = 0;
+  var analysed = 0;
+  var treesSum = 0;
+  final lines = StringBuffer();
+  var lineCount = 0;
+
+  for (final h in hotspots) {
+    treesSum += h.treesLost;
+    final label = (h.aiResult ?? '').trim();
+    final upper = label.toUpperCase();
+    final hasLabel = upper == 'DAMAGED' || upper == 'HEALTHY';
+    final c = h.aiConfidence;
+
+    if (hasLabel) {
+      analysed++;
+      if (upper == 'DAMAGED') {
+        damagedCount++;
+      } else {
+        healthyCount++;
+      }
+      if (c != null) {
+        all.add(c);
+        if (upper == 'DAMAGED') {
+          damaged.add(c);
+        } else {
+          healthy.add(c);
+        }
+      }
+    } else {
+      pending++;
+    }
+
+    if (lineCount < _kMaxHotspotLinesInPrompt) {
+      final pct = c != null ? '${(c * 100).toStringAsFixed(1)}%' : 'n/a';
+      lines.writeln(
+        '  #${h.id}: ${hasLabel ? upper : 'PENDING'} — confidence $pct, '
+        'trees_lost ${h.treesLost}, '
+        'lat ${h.latitude.toStringAsFixed(5)}, lng ${h.longitude.toStringAsFixed(5)}',
+      );
+      lineCount++;
+    }
+  }
+
+  if (hotspots.length > _kMaxHotspotLinesInPrompt) {
+    lines.writeln(
+      '  … (${hotspots.length - _kMaxHotspotLinesInPrompt} more hotspots omitted; '
+      'totals above are complete)',
+    );
+  }
+
+  String mean(List<double> xs) => xs.isEmpty
+      ? 'n/a'
+      : '${(xs.reduce((a, b) => a + b) / xs.length * 100).toStringAsFixed(1)}%';
+
+  return _TfliteRollup(
+    total: hotspots.length,
+    analysed: analysed,
+    pending: pending,
+    damagedCount: damagedCount,
+    healthyCount: healthyCount,
+    meanConfDamaged: mean(damaged),
+    meanConfHealthy: mean(healthy),
+    meanConfAll: mean(all),
+    treesSumFromHotspots: treesSum,
+    perHotspotLines: lines.toString().trimRight(),
+  );
+}
+
+/// Uses [loadGeminiApiKey] when non-empty; otherwise falls back to templated text.
+AINarrativeService narrativeServiceWithOptionalGemini({FirebaseFirestore? firestore}) {
+  return AINarrativeService(
+    firestore: firestore,
+    caller: (prompt) async {
+      final key = await loadGeminiApiKey();
+      if (key.isEmpty) return '';
+      return GeminiNarrativeClient.complete(apiKey: key, prompt: prompt);
+    },
+  );
 }

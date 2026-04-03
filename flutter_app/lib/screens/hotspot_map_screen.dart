@@ -157,7 +157,8 @@ class _HotspotMapScreenState extends State<HotspotMapScreen> {
     );
 
     // Generate a data-driven narrative from actual analysis results.
-    final narrative = await AINarrativeService().generateNarrative(eventWithResults);
+    final narrative =
+        await narrativeServiceWithOptionalGemini().generateNarrative(eventWithResults);
 
     if (!mounted) return;
 
