@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:agrisentinel/l10n/app_localizations.dart';
 
 import '../features/auth/auth_models.dart';
 import '../features/auth/auth_service.dart';
@@ -139,26 +140,26 @@ class _AppShellState extends State<AppShell> with SingleTickerProviderStateMixin
               _index = value;
             });
           },
-          destinations: const [
+          destinations: [
             NavigationDestination(
-              icon: Icon(Icons.home_outlined),
-              selectedIcon: Icon(Icons.home_rounded),
-              label: 'Home',
+              icon: const Icon(Icons.home_outlined),
+              selectedIcon: const Icon(Icons.home_rounded),
+              label: AppLocalizations.of(context).navHome,
             ),
             NavigationDestination(
-              icon: Icon(Icons.assignment_outlined),
-              selectedIcon: Icon(Icons.assignment_rounded),
-              label: 'Claims',
+              icon: const Icon(Icons.assignment_outlined),
+              selectedIcon: const Icon(Icons.assignment_rounded),
+              label: AppLocalizations.of(context).navClaims,
             ),
             NavigationDestination(
-              icon: Icon(Icons.person_outline_rounded),
-              selectedIcon: Icon(Icons.person_rounded),
-              label: 'Profile',
+              icon: const Icon(Icons.person_outline_rounded),
+              selectedIcon: const Icon(Icons.person_rounded),
+              label: AppLocalizations.of(context).navProfile,
             ),
             NavigationDestination(
-              icon: Icon(Icons.grid_view_outlined),
-              selectedIcon: Icon(Icons.grid_view_rounded),
-              label: 'More',
+              icon: const Icon(Icons.grid_view_outlined),
+              selectedIcon: const Icon(Icons.grid_view_rounded),
+              label: AppLocalizations.of(context).navMore,
             ),
           ],
         ),
