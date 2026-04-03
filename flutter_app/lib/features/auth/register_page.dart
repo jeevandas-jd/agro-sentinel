@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_primary_button.dart';
 import '../../widgets/app_text_field.dart';
+import '../../widgets/tutorial_wrapper.dart';
 import 'auth_models.dart';
 import 'auth_service.dart';
 import 'auth_validators.dart';
@@ -106,10 +107,12 @@ class _RegisterPageState extends State<RegisterPage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Stack(
-        children: [
+    return TutorialWrapper(
+      screenKey: 'New user registration eng',
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: Stack(
+          children: [
           // Top left circle decoration
           Positioned(
             top: -80,
@@ -303,6 +306,7 @@ class _RegisterPageState extends State<RegisterPage>
             ),
           ),
         ],
+        ),
       ),
     );
   }

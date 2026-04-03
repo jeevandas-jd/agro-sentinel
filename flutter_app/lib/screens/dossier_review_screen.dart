@@ -5,6 +5,7 @@ import '../models/farm_model.dart';
 import '../models/farmer_model.dart';
 import '../theme/app_theme.dart';
 import 'dossier_submit_screen.dart';
+import '../widgets/tutorial_wrapper.dart';
 
 class DossierReviewScreen extends StatefulWidget {
   final FarmModel farm;
@@ -76,11 +77,13 @@ class _DossierReviewScreenState extends State<DossierReviewScreen> {
     );
     final estimatedLoss = treesLost * 2500;
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Damage Report Preview')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
+    return TutorialWrapper(
+      screenKey: 'dossiers_review',
+      child: Scaffold(
+        appBar: AppBar(title: const Text('Damage Report Preview')),
+        body: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
           _SectionCard(
             title: 'Farm details',
             child: Column(
@@ -167,6 +170,7 @@ class _DossierReviewScreenState extends State<DossierReviewScreen> {
             child: const Text('Generate PDF Report'),
           ),
         ],
+        ),
       ),
     );
   }

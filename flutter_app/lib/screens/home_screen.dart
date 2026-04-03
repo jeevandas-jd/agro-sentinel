@@ -11,6 +11,7 @@ import '../models/farmer_model.dart';
 import '../services/disaster_event_service.dart';
 import '../services/farm_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/tutorial_wrapper.dart';
 import 'add_farm_screen.dart';
 import 'farm_map_screen.dart';
 import 'new_disaster_screen.dart';
@@ -175,8 +176,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final farmer = widget.farmer;
-    return Scaffold(
-      appBar: AppBar(
+    return TutorialWrapper(
+      screenKey: 'home',
+      child: Scaffold(
+        appBar: AppBar(
         title: Text(l10n.appTitle),
         actions: [
           IconButton(
@@ -190,8 +193,8 @@ class _HomeScreenState extends State<HomeScreen> {
             tooltip: l10n.signOut,
           ),
         ],
-      ),
-      body: RefreshIndicator(
+        ),
+        body: RefreshIndicator(
         onRefresh: () async {
           await _farmsSub?.cancel();
           await _eventsSub?.cancel();
@@ -275,11 +278,12 @@ class _HomeScreenState extends State<HomeScreen> {
             _buildEventsSection(),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
+        ),
+        floatingActionButton: FloatingActionButton.extended(
         onPressed: _openAddFarm,
         icon: const Icon(Icons.add_location_alt_outlined),
         label: Text(l10n.addFarm),
+        ),
       ),
     );
   }

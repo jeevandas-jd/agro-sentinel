@@ -5,6 +5,7 @@ import '../models/farm_model.dart';
 import '../models/farmer_model.dart';
 import '../services/disaster_event_service.dart';
 import '../services/voice_to_text_service.dart';
+import '../widgets/tutorial_wrapper.dart';
 import 'hotspot_map_screen.dart';
 
 class NewDisasterScreen extends StatefulWidget {
@@ -164,10 +165,12 @@ class _NewDisasterScreenState extends State<NewDisasterScreen> {
   @override
   Widget build(BuildContext context) {
     final description = _descriptionController.text;
-    return Scaffold(
-      appBar: AppBar(title: const Text('Report Damage')),
-      body: SafeArea(
-        child: Column(
+    return TutorialWrapper(
+      screenKey: 'new_disaster',
+      child: Scaffold(
+        appBar: AppBar(title: const Text('Report Damage')),
+        body: SafeArea(
+          child: Column(
           children: [
             Expanded(
               child: ListView(
@@ -248,6 +251,7 @@ class _NewDisasterScreenState extends State<NewDisasterScreen> {
               ),
             ),
           ],
+        ),
         ),
       ),
     );

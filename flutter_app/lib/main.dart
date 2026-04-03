@@ -8,7 +8,10 @@ import 'firebase_options.dart';
 import 'theme/app_theme.dart';
 import 'core/providers/locale_provider.dart';
 import 'package:agrisentinel/l10n/app_localizations.dart';
+
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+
+import 'package:agrisentinel/services/tutorial_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,7 +25,9 @@ Future<void> main() async {
       systemNavigationBarIconBrightness: Brightness.dark,
     ),
   );
+
   await dotenv.load(fileName: ".env");
+  await TutorialService().init();
   runApp(const AgriSentinelApp());
 }
 

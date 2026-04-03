@@ -10,6 +10,7 @@ import '../models/hotspot_model.dart';
 import '../services/ai_narrative_service.dart';
 import '../services/disaster_event_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/tutorial_wrapper.dart';
 import 'camera_capture_screen.dart';
 import 'dossier_review_screen.dart';
 
@@ -217,10 +218,12 @@ class _HotspotMapScreenState extends State<HotspotMapScreen> {
           )
         : null;
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Mark Damaged Areas')),
-      body: Stack(
-        children: [
+    return TutorialWrapper(
+      screenKey: 'hotspot_map',
+      child: Scaffold(
+        appBar: AppBar(title: const Text('Mark Damaged Areas')),
+        body: Stack(
+          children: [
           Positioned.fill(
             child: gmaps.GoogleMap(
               initialCameraPosition: gmaps.CameraPosition(
@@ -332,7 +335,8 @@ class _HotspotMapScreenState extends State<HotspotMapScreen> {
               );
             },
           ),
-        ],
+          ],
+        ),
       ),
     );
   }

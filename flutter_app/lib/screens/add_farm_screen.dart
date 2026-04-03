@@ -10,6 +10,7 @@ import '../models/farmer_model.dart';
 import '../models/lat_lng.dart' as app;
 import '../services/farm_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/tutorial_wrapper.dart';
 
 // The same key that is injected into AndroidManifest.xml via local.properties.
 // It is already embedded in the APK binary, so referencing it here is safe.
@@ -303,14 +304,17 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: !_onMapStep,
-      onPopInvokedWithResult: (didPop, _) {
-        if (!didPop && _onMapStep) {
-          setState(() => _onMapStep = false);
-        }
-      },
-      child: _onMapStep ? _buildMapStep() : _buildFormStep(),
+    return TutorialWrapper(
+      screenKey: 'add_farm',
+      child: PopScope(
+        canPop: !_onMapStep,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop && _onMapStep) {
+            setState(() => _onMapStep = false);
+          }
+        },
+        child: _onMapStep ? _buildMapStep() : _buildFormStep(),
+      ),
     );
   }
 
