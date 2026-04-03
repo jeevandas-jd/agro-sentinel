@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'features/auth/auth_service.dart';
+import 'app/app_route_observer.dart';
 import 'app/app_router.dart';
 import 'firebase_options.dart';
 import 'theme/app_theme.dart';
@@ -96,6 +97,7 @@ class _AgriSentinelAppState extends State<AgriSentinelApp> {
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
         ],
+        navigatorObservers: [appRouteObserver],
         home: AppRouter(authService: widget.authService),
       ),
     );

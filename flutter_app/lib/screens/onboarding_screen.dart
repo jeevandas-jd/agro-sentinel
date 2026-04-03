@@ -34,12 +34,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     (code: 'hi', label: 'Hindi', native: 'हिन्दी'),
   ];
 
-  static const _tutorialOptions = <({String code, String label, String native})>[
-    (code: 'en', label: 'English', native: 'English'),
-    (code: 'ml', label: 'Malayalam', native: 'മലയാളം'),
-    (code: 'hi', label: 'Hindi', native: 'हिन्दी'),
-  ];
-
   bool get _canContinue {
     if (_step == 0) return _preferredLang != null;
     if (_step == 1) return _tutorialEnabled != null;
@@ -166,7 +160,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           title: const Text('No, skip'),
                         ),
                       ] else ...[
-                        for (final opt in _tutorialOptions)
+                        for (final opt in TutorialService.voiceLanguageOptions)
                           RadioListTile<String>(
                             value: opt.code,
                             groupValue: _tutorialLang,
