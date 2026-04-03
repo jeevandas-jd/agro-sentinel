@@ -13,10 +13,7 @@ import '../theme/app_theme.dart';
 
 // The same key that is injected into AndroidManifest.xml via local.properties.
 // It is already embedded in the APK binary, so referencing it here is safe.
-const _kMapsApiKey = String.fromEnvironment(
-  'MAPS_API_KEY',
-  defaultValue: 'AIzaSyDhofLfV9rZpUp5sULYvgzda55sePMryNc',
-);
+const _kMapsApiKey = String.fromEnvironment('MAPS_API_KEY');
 
 class AddFarmScreen extends StatefulWidget {
   final FarmerModel farmer;
