@@ -321,6 +321,8 @@ class DamagePreviewPdfService {
       _section('DISASTER DETAILS'),
       _table([
         ['Type', event.disasterType],
+        if ((event.otherDisasterDetail ?? '').trim().isNotEmpty)
+          ['Other (specify)', event.otherDisasterDetail!.trim()],
         ['Occurred', _formatDate(event.occurredAt)],
         ['Reported', _formatDateTime(event.reportedAt)],
       ]),

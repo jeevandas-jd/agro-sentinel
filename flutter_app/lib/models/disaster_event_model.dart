@@ -1,11 +1,17 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'hotspot_model.dart';
 
+/// Sentinel for [DisasterEventModel.copyWith] so `null` can clear [otherDisasterDetail].
+const _kUnsetOtherDisasterDetail = Object();
+
 class DisasterEventModel {
   final String id;
   final String farmerUid;
   final String farmId;
   final String disasterType;
+  /// When [disasterType] is "Other", brief user description of the incident type.
+  /// Persisted as [other_disaster_detail] in Firestore.
+  final String? otherDisasterDetail;
   final String farmerDescription;
   final DateTime occurredAt;
   final DateTime reportedAt;
@@ -48,6 +54,7 @@ class DisasterEventModel {
     required this.farmerUid,
     required this.farmId,
     required this.disasterType,
+    this.otherDisasterDetail,
     required this.farmerDescription,
     required this.occurredAt,
     required this.reportedAt,
@@ -81,6 +88,7 @@ class DisasterEventModel {
     String? farmerUid,
     String? farmId,
     String? disasterType,
+    Object? otherDisasterDetail = _kUnsetOtherDisasterDetail,
     String? farmerDescription,
     DateTime? occurredAt,
     DateTime? reportedAt,
@@ -109,6 +117,9 @@ class DisasterEventModel {
       farmerUid: farmerUid ?? this.farmerUid,
       farmId: farmId ?? this.farmId,
       disasterType: disasterType ?? this.disasterType,
+      otherDisasterDetail: identical(otherDisasterDetail, _kUnsetOtherDisasterDetail)
+          ? this.otherDisasterDetail
+          : otherDisasterDetail as String?,
       farmerDescription: farmerDescription ?? this.farmerDescription,
       occurredAt: occurredAt ?? this.occurredAt,
       reportedAt: reportedAt ?? this.reportedAt,
@@ -151,6 +162,7 @@ class DisasterEventModel {
       farmerUid: (data['farmer_uid'] as String?) ?? '',
       farmId: (data['farm_id'] as String?) ?? '',
       disasterType: (data['disaster_type'] as String?) ?? '',
+      otherDisasterDetail: data['other_disaster_detail'] as String?,
       farmerDescription: (data['farmer_description'] as String?) ?? '',
       occurredAt: _asDateTime(data['occurred_at']) ?? now,
       reportedAt: _asDateTime(data['reported_at']) ?? now,
@@ -181,6 +193,8 @@ class DisasterEventModel {
       'farmer_uid': farmerUid,
       'farm_id': farmId,
       'disaster_type': disasterType,
+      if ((otherDisasterDetail ?? '').trim().isNotEmpty)
+        'other_disaster_detail': otherDisasterDetail!.trim(),
       'farmer_description': farmerDescription,
       'occurred_at': Timestamp.fromDate(occurredAt),
       'reported_at': Timestamp.fromDate(reportedAt),

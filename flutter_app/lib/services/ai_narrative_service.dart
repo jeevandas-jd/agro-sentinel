@@ -128,6 +128,9 @@ class AINarrativeService {
     final bearingStatus = event.isBearing == null
         ? 'not recorded'
         : (event.isBearing! ? 'bearing (in production)' : 'non-bearing');
+    final otherTypeLine = (event.otherDisasterDetail ?? '').trim().isEmpty
+        ? ''
+        : '\nOther type detail : ${event.otherDisasterDetail!.trim()}';
 
     return '''
 You are a certified agricultural insurance assessment officer writing a formal damage assessment dossier entry.
@@ -141,7 +144,7 @@ Crop age    : $cropAge
 Bearing     : $bearingStatus
 
 ── Incident ──────────────────────────────────────────
-Type        : ${event.disasterType}
+Type        : ${event.disasterType}$otherTypeLine
 Occurred    : ${_date(event.occurredAt)}
 Reported    : ${_date(event.reportedAt)}
 Status      : ${event.status}
@@ -222,6 +225,10 @@ Rules:
     final bearingStr = event.isBearing == null
         ? ''
         : (event.isBearing! ? ' (bearing stage)' : ' (non-bearing stage)');
+    final otherSpec = (event.otherDisasterDetail ?? '').trim();
+    final disasterLabel = event.disasterType == 'Other' && otherSpec.isNotEmpty
+        ? 'Other ($otherSpec)'
+        : event.disasterType;
 
     final camLine = tf.analysed > 0
         ? 'On-device TFLite analysis covered ${tf.analysed} photo(s) at '
@@ -252,7 +259,7 @@ Rules:
             : '');
 
     final preview =
-        'A ${event.disasterType} incident on ${_date(event.occurredAt)} affected '
+        'A $disasterLabel incident on ${_date(event.occurredAt)} affected '
         '$farmName ($crop plantation$cropAgeStr$bearingStr). '
         '${tf.damagedCount} of ${tf.total} hotspot(s) were classified as DAMAGED '
         'with an estimated loss of ₹${event.estimatedLossInr.toStringAsFixed(0)}.';
@@ -260,7 +267,7 @@ Rules:
     final report =
         'A damage assessment was conducted for the $crop plantation '
         '($farmName, Survey No. $survey, $area ha$cropAgeStr$bearingStr) '
-        'following the ${event.disasterType} '
+        'following the $disasterLabel '
         'incident on ${_date(event.occurredAt)}.\n\n'
         '$camLine$satLine$groqLine\n\n'
         'Farmer statement: "${event.farmerDescription}"\n\n'

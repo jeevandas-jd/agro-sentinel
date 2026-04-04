@@ -29,6 +29,9 @@ class NewDisasterScreen extends StatefulWidget {
 }
 
 class _NewDisasterScreenState extends State<NewDisasterScreen> {
+  /// Incidents may only be reported for the rolling window ending now.
+  static const _occurredWindow = Duration(days: 7);
+
   static const _baseTypes = <String>[
     'Wildlife Attack',
     'Flood',
@@ -48,6 +51,8 @@ class _NewDisasterScreenState extends State<NewDisasterScreen> {
   final _eventService = DisasterEventService();
   final _voiceService = VoiceToTextService();
   final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _otherDisasterController =
+      TextEditingController();
   final TextEditingController _cropAgeController = TextEditingController();
   String? _selectedType;
   DateTime _occurredAt = DateTime.now();
@@ -67,7 +72,10 @@ class _NewDisasterScreenState extends State<NewDisasterScreen> {
       }
       _selectedType =
           d.disasterType.isNotEmpty ? d.disasterType : null;
-      _occurredAt = d.occurredAt;
+      if ((d.otherDisasterDetail ?? '').isNotEmpty) {
+        _otherDisasterController.text = d.otherDisasterDetail!;
+      }
+      _occurredAt = _clampOccurredAt(d.occurredAt);
       _isBearing = d.isBearing;
     }
   }
@@ -76,6 +84,7 @@ class _NewDisasterScreenState extends State<NewDisasterScreen> {
   void dispose() {
     _voiceService.dispose();
     _descriptionController.dispose();
+    _otherDisasterController.dispose();
     _cropAgeController.dispose();
     super.dispose();
   }
@@ -130,12 +139,33 @@ class _NewDisasterScreenState extends State<NewDisasterScreen> {
     }
   }
 
+  DateTime get _occurredMin => DateTime.now().subtract(_occurredWindow);
+  DateTime get _occurredMax => DateTime.now();
+
+  /// Keeps [t] inside [_occurredMin] … [_occurredMax] (past 7 days through now).
+  DateTime _clampOccurredAt(DateTime t) {
+    final min = _occurredMin;
+    final max = _occurredMax;
+    if (t.isBefore(min)) return min;
+    if (t.isAfter(max)) return max;
+    return t;
+  }
+
   Future<void> _pickDateTime() async {
+    final now = DateTime.now();
+    final minInstant = now.subtract(_occurredWindow);
+    final firstDate = DateTime(minInstant.year, minInstant.month, minInstant.day);
+    final lastDate = DateTime(now.year, now.month, now.day);
+
+    var initialCal = DateTime(_occurredAt.year, _occurredAt.month, _occurredAt.day);
+    if (initialCal.isBefore(firstDate)) initialCal = firstDate;
+    if (initialCal.isAfter(lastDate)) initialCal = lastDate;
+
     final date = await showDatePicker(
       context: context,
-      firstDate: DateTime.now().subtract(const Duration(days: 365)),
-      lastDate: DateTime.now(),
-      initialDate: _occurredAt,
+      firstDate: firstDate,
+      lastDate: lastDate,
+      initialDate: initialCal,
     );
     if (date == null || !mounted) {
       return;
@@ -147,13 +177,16 @@ class _NewDisasterScreenState extends State<NewDisasterScreen> {
     if (time == null) {
       return;
     }
+    if (!mounted) return;
     setState(() {
-      _occurredAt = DateTime(
-        date.year,
-        date.month,
-        date.day,
-        time.hour,
-        time.minute,
+      _occurredAt = _clampOccurredAt(
+        DateTime(
+          date.year,
+          date.month,
+          date.day,
+          time.hour,
+          time.minute,
+        ),
       );
     });
   }
@@ -168,17 +201,35 @@ class _NewDisasterScreenState extends State<NewDisasterScreen> {
       );
       return;
     }
+    final otherDetail = _otherDisasterController.text.trim();
+    if (_selectedType == 'Other' && otherDetail.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Please briefly describe what kind of disaster "Other" refers to.',
+          ),
+        ),
+      );
+      return;
+    }
     if (_saving) return;
-    setState(() => _saving = true);
+    final occurredAt = _clampOccurredAt(_occurredAt);
+    setState(() {
+      _occurredAt = occurredAt;
+      _saving = true;
+    });
     final cropAgeRaw = _cropAgeController.text.trim();
     final cropAge = cropAgeRaw.isEmpty ? null : int.tryParse(cropAgeRaw);
     final existing = widget.existingDraft;
     final DisasterEventModel event;
+    final otherDisasterDetail =
+        _selectedType == 'Other' ? otherDetail : null;
     if (existing != null) {
       event = existing.copyWith(
         disasterType: _selectedType!,
+        otherDisasterDetail: otherDisasterDetail,
         farmerDescription: description,
-        occurredAt: _occurredAt,
+        occurredAt: occurredAt,
         reportedAt: DateTime.now(),
         status: 'draft',
         cropAgeYears: cropAge,
@@ -190,8 +241,9 @@ class _NewDisasterScreenState extends State<NewDisasterScreen> {
         farmerUid: widget.farmer.uid,
         farmId: widget.farm.id,
         disasterType: _selectedType!,
+        otherDisasterDetail: otherDisasterDetail,
         farmerDescription: description,
-        occurredAt: _occurredAt,
+        occurredAt: occurredAt,
         reportedAt: DateTime.now(),
         status: 'draft',
         hotspots: const [],
@@ -260,18 +312,53 @@ class _NewDisasterScreenState extends State<NewDisasterScreen> {
                             child: ChoiceChip(
                               label: Text(type),
                               selected: selected,
-                              onSelected: (_) =>
-                                  setState(() => _selectedType = type),
+                              onSelected: (_) => setState(() {
+                                if (_selectedType == type) return;
+                                _selectedType = type;
+                                if (type != 'Other') {
+                                  _otherDisasterController.clear();
+                                }
+                              }),
                             ),
                           );
                         }).toList(),
                       ),
                     ),
+                    if (_selectedType == 'Other') ...[
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: _otherDisasterController,
+                        maxLines: 2,
+                        maxLength: 160,
+                        onChanged: (_) => setState(() {}),
+                        textCapitalization: TextCapitalization.sentences,
+                        decoration: const InputDecoration(
+                          labelText: 'Describe the disaster type',
+                          hintText: 'e.g. Hail, pest outbreak, machinery damage',
+                          alignLabelWithHint: true,
+                          counterText: '',
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 20),
                     ListTile(
                       contentPadding: EdgeInsets.zero,
                       title: const Text('When did it happen?'),
-                      subtitle: Text(_formatDateTime(_occurredAt)),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(_formatDateTime(_occurredAt)),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Past 7 days only (up to now).',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Theme.of(context).colorScheme.outline,
+                            ),
+                          ),
+                        ],
+                      ),
+                      isThreeLine: true,
                       trailing: const Icon(Icons.calendar_today_outlined),
                       onTap: _pickDateTime,
                     ),

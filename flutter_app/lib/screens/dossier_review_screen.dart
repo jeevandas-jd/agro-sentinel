@@ -160,6 +160,11 @@ class _DossierReviewScreenState extends State<DossierReviewScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Type: ${event.disasterType}'),
+                if ((event.otherDisasterDetail ?? '').trim().isNotEmpty)
+                  Text(
+                    'Specified as: ${event.otherDisasterDetail!.trim()}',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
                 Text('When: ${_formatDate(event.occurredAt)}'),
               ],
             ),
