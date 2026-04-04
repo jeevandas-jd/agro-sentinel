@@ -321,57 +321,48 @@ class _HomeScreenState extends State<HomeScreen> {
       showEmbeddedToggle: false,
       child: Scaffold(
         appBar: AppBar(
-        title: Text(l10n.appTitle),
-        actions: [
-          ListenableBuilder(
-            listenable: TutorialService(),
-            builder: (context, _) {
-              final svc = TutorialService();
-              return Padding(
-                padding: const EdgeInsets.only(left: 4),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      svc.isEnabled ? 'Tutorial on' : 'Tutorial off',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: svc.isEnabled
-                            ? AppColors.primaryDark
-                            : AppColors.textMuted,
-                      ),
-                    ),
-                    Transform.scale(
-                      scale: 0.82,
-                      alignment: Alignment.centerRight,
-                      child: Switch.adaptive(
-                        value: svc.isEnabled,
-                        onChanged: (v) => svc.setEnabled(v),
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                    ),
-                  ],
+          title: Text(
+            l10n.appTitle,
+            style: Theme.of(context).appBarTheme.titleTextStyle?.copyWith(
+                  fontSize: 19,
+                  letterSpacing: 0,
                 ),
-              );
-            },
           ),
-          IconButton(
-            onPressed: () => showTutorialVoicePickerSheet(context),
-            icon: const Icon(Icons.record_voice_over_outlined),
-            tooltip: 'Tutorial voice language',
-          ),
-          IconButton(
-            onPressed: () => showLanguagePickerSheet(context),
-            icon: const Icon(Icons.language_outlined),
-            tooltip: l10n.language,
-          ),
-          IconButton(
-            onPressed: _logout,
-            icon: const Icon(Icons.logout),
-            tooltip: l10n.signOut,
-          ),
-        ],
+          actions: [
+            ListenableBuilder(
+              listenable: TutorialService(),
+              builder: (context, _) {
+                final svc = TutorialService();
+                return Padding(
+                  padding: const EdgeInsetsDirectional.only(end: 4),
+                  child: Tooltip(
+                    message:
+                        svc.isEnabled ? 'Tutorial on' : 'Tutorial off',
+                    child: Switch.adaptive(
+                      value: svc.isEnabled,
+                      onChanged: (v) => svc.setEnabled(v),
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                  ),
+                );
+              },
+            ),
+            IconButton(
+              onPressed: () => showTutorialVoicePickerSheet(context),
+              icon: const Icon(Icons.record_voice_over_outlined),
+              tooltip: 'Tutorial voice language',
+            ),
+            IconButton(
+              onPressed: () => showLanguagePickerSheet(context),
+              icon: const Icon(Icons.language_outlined),
+              tooltip: l10n.language,
+            ),
+            IconButton(
+              onPressed: _logout,
+              icon: const Icon(Icons.logout),
+              tooltip: l10n.signOut,
+            ),
+          ],
         ),
         body: RefreshIndicator(
         onRefresh: () async {
