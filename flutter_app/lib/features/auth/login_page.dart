@@ -183,7 +183,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: AppSpacing.x2),
                   ],
                   const Text(
-                    'Agro Sentinel v4.2 — Gradient Descent',
+                    'Agro Sentinel v4.5 — Gradient Descent',
                     style: TextStyle(color: Colors.white70, fontSize: 12),
                   ),
                 ],
