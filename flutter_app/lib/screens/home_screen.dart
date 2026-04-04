@@ -532,70 +532,112 @@ class _HomeScreenState extends State<HomeScreen> {
         final deleteBusy = _deletingEventId == event.id;
         return Card(
           margin: const EdgeInsets.only(bottom: 10),
-          child: ListTile(
-            leading: Icon(
-              _disasterIcon(event.disasterType),
-              color: AppColors.primary,
-            ),
-            title: Text(event.disasterType),
-            subtitle: Text(
-              '${_formatDate(event.occurredAt)} · ${event.farmId.isEmpty ? '' : 'Farm'}',
-            ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 12, 4, 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (isDraft) ...[
-                  IconButton(
-                    icon: const Icon(Icons.edit_outlined),
-                    tooltip: l10n.editDraftReport,
-                    onPressed: deleteBusy || _deletingEventId != null
-                        ? null
-                        : () => _editDraft(event),
-                  ),
-                  IconButton(
-                    icon: deleteBusy
-                        ? const SizedBox(
-                            width: 22,
-                            height: 22,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.delete_outline),
-                    tooltip: l10n.deleteDraftReport,
-                    onPressed: deleteBusy || _deletingEventId != null
-                        ? null
-                        : () => _confirmDeleteEvent(event, isDraft: true),
-                  ),
-                ] else ...[
-                  IconButton(
-                    icon: pdfBusy
-                        ? const SizedBox(
-                            width: 22,
-                            height: 22,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.picture_as_pdf_outlined),
-                    tooltip: l10n.downloadDamageReport,
-                    onPressed: pdfBusy ||
-                            _pdfLoadingEventId != null ||
-                            _deletingEventId != null
-                        ? null
-                        : () => _downloadDamageReport(event),
-                  ),
-                  IconButton(
-                    icon: deleteBusy
-                        ? const SizedBox(
-                            width: 22,
-                            height: 22,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.delete_outline),
-                    tooltip: l10n.deleteSubmittedReport,
-                    onPressed: deleteBusy || _deletingEventId != null
-                        ? null
-                        : () => _confirmDeleteEvent(event, isDraft: false),
-                  ),
-                ],
-                _StatusBadge(status: event.status),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Icon(
+                        _disasterIcon(event.disasterType),
+                        color: AppColors.primary,
+                        size: 26,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            event.disasterType,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                              height: 1.25,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${_formatDate(event.occurredAt)} · ${event.farmId.isEmpty ? '' : 'Farm'}',
+                            style: const TextStyle(
+                              color: AppColors.textMuted,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Wrap(
+                  alignment: WrapAlignment.end,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 0,
+                  runSpacing: 4,
+                  children: [
+                    if (isDraft) ...[
+                      IconButton(
+                        icon: const Icon(Icons.edit_outlined),
+                        tooltip: l10n.editDraftReport,
+                        onPressed: deleteBusy || _deletingEventId != null
+                            ? null
+                            : () => _editDraft(event),
+                      ),
+                      IconButton(
+                        icon: deleteBusy
+                            ? const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.delete_outline),
+                        tooltip: l10n.deleteDraftReport,
+                        onPressed: deleteBusy || _deletingEventId != null
+                            ? null
+                            : () => _confirmDeleteEvent(event, isDraft: true),
+                      ),
+                    ] else ...[
+                      IconButton(
+                        icon: pdfBusy
+                            ? const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.picture_as_pdf_outlined),
+                        tooltip: l10n.downloadDamageReport,
+                        onPressed: pdfBusy ||
+                                _pdfLoadingEventId != null ||
+                                _deletingEventId != null
+                            ? null
+                            : () => _downloadDamageReport(event),
+                      ),
+                      IconButton(
+                        icon: deleteBusy
+                            ? const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.delete_outline),
+                        tooltip: l10n.deleteSubmittedReport,
+                        onPressed: deleteBusy || _deletingEventId != null
+                            ? null
+                            : () => _confirmDeleteEvent(event, isDraft: false),
+                      ),
+                    ],
+                    Padding(
+                      padding: const EdgeInsets.only(left: 4, right: 8),
+                      child: _StatusBadge(status: event.status),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),

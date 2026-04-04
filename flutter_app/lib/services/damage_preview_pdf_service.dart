@@ -31,6 +31,19 @@ class DamagePreviewPdfService {
         '${d.minute.toString().padLeft(2, '0')}';
   }
 
+  static String _statusDisplayLabel(String status) {
+    switch (status.toLowerCase()) {
+      case 'submitted':
+        return 'Report generated';
+      case 'verified':
+        return 'Verified';
+      case 'draft':
+        return 'Draft';
+      default:
+        return status;
+    }
+  }
+
   static Future<pw.MemoryImage?> _loadImageRef(String? ref) async {
     if (ref == null || ref.isEmpty) return null;
     if (ref.startsWith('local://')) return null;
@@ -228,6 +241,7 @@ class DamagePreviewPdfService {
     final narrative = narrativeText.trim().isEmpty
         ? (event.aiNarrative ?? 'Narrative not available.')
         : narrativeText.trim();
+    final cropAge = event.cropAgeYears;
 
     final pdf = pw.Document(
       title: 'agroSentinel Damage Report — ${event.id}',
@@ -257,7 +271,7 @@ class DamagePreviewPdfService {
                   ),
                 ),
                 pw.Text(
-                  'Status: ${event.status} • Reported ${_formatDateTime(event.reportedAt)}',
+                  'Status: ${_statusDisplayLabel(event.status)} • Reported ${_formatDateTime(event.reportedAt)}',
                   style: pw.TextStyle(fontSize: 9, color: PdfColors.grey700),
                 ),
               ],
@@ -282,7 +296,9 @@ class DamagePreviewPdfService {
         ['Area', '${farm.areaHectares.toStringAsFixed(1)} ha'],
         [
           'Crop age',
-          event.cropAgeYears != null ? '${event.cropAgeYears} year(s)' : '—',
+          cropAge != null
+              ? '${cropAge > 50 ? 50 : cropAge} year(s)'
+              : '—',
         ],
         [
           'Bearing stage',

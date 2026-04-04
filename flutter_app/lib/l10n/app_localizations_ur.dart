@@ -153,7 +153,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get addFarm => 'کھیت شامل کریں';
 
   @override
-  String get statusSubmitted => 'جمع کرایا';
+  String get statusSubmitted => 'رپورٹ تیار';
 
   @override
   String get statusVerified => 'تصدیق شدہ';
@@ -248,7 +248,10 @@ class AppLocalizationsUr extends AppLocalizations {
   String get reportDeleted => 'Report deleted';
 
   @override
-  String get confirmDeleteSubmittedTitle => 'Delete this submitted report?';
+  String get reportGeneratedSuccess => 'رپورٹ کامیابی سے تیار ہو گئی';
+
+  @override
+  String get confirmDeleteSubmittedTitle => 'یہ رپورٹ حذف کریں؟';
 
   @override
   String get confirmDeleteSubmittedMessage =>

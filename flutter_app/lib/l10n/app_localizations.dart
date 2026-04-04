@@ -395,7 +395,7 @@ abstract class AppLocalizations {
   /// No description provided for @statusSubmitted.
   ///
   /// In en, this message translates to:
-  /// **'Submitted'**
+  /// **'Report generated'**
   String get statusSubmitted;
 
   /// No description provided for @statusVerified.
@@ -572,10 +572,16 @@ abstract class AppLocalizations {
   /// **'Report deleted'**
   String get reportDeleted;
 
+  /// No description provided for @reportGeneratedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Report generated successfully'**
+  String get reportGeneratedSuccess;
+
   /// No description provided for @confirmDeleteSubmittedTitle.
   ///
   /// In en, this message translates to:
-  /// **'Delete this submitted report?'**
+  /// **'Delete this report?'**
   String get confirmDeleteSubmittedTitle;
 
   /// No description provided for @confirmDeleteSubmittedMessage.

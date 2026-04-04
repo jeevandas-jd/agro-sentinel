@@ -158,7 +158,7 @@ class AppLocalizationsMl extends AppLocalizations {
   String get addFarm => 'ഫാം ചേർക്കുക';
 
   @override
-  String get statusSubmitted => 'സമർപ്പിച്ചു';
+  String get statusSubmitted => 'റിപ്പോർട്ട് സൃഷ്ടിച്ചു';
 
   @override
   String get statusVerified => 'സ്ഥിരീകരിച്ചു';
@@ -253,7 +253,10 @@ class AppLocalizationsMl extends AppLocalizations {
   String get reportDeleted => 'Report deleted';
 
   @override
-  String get confirmDeleteSubmittedTitle => 'Delete this submitted report?';
+  String get reportGeneratedSuccess => 'റിപ്പോർട്ട് വിജയകരമായി സൃഷ്ടിച്ചു';
+
+  @override
+  String get confirmDeleteSubmittedTitle => 'ഈ റിപ്പോർട്ട് ഇല്ലാതാക്കണോ?';
 
   @override
   String get confirmDeleteSubmittedMessage =>

@@ -154,7 +154,7 @@ class AppLocalizationsOr extends AppLocalizations {
   String get addFarm => 'ଜମି ଯୋଡ଼ନ୍ତୁ';
 
   @override
-  String get statusSubmitted => 'ଦାଖଲ';
+  String get statusSubmitted => 'ରିପୋର୍ଟ ସୃଷ୍ଟି';
 
   @override
   String get statusVerified => 'ଯାଞ୍ଚ';
@@ -248,7 +248,10 @@ class AppLocalizationsOr extends AppLocalizations {
   String get reportDeleted => 'Report deleted';
 
   @override
-  String get confirmDeleteSubmittedTitle => 'Delete this submitted report?';
+  String get reportGeneratedSuccess => 'ରିପୋର୍ଟ ସଫଳତାର ସହିତ ସୃଷ୍ଟି ହେଲା';
+
+  @override
+  String get confirmDeleteSubmittedTitle => 'ଏହି ରିପୋର୍ଟ ଡିଲିଟ୍ କରିବେ?';
 
   @override
   String get confirmDeleteSubmittedMessage =>

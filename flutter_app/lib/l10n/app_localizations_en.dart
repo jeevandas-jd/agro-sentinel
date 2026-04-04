@@ -152,7 +152,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addFarm => 'Add Farm';
 
   @override
-  String get statusSubmitted => 'Submitted';
+  String get statusSubmitted => 'Report generated';
 
   @override
   String get statusVerified => 'Verified';
@@ -246,7 +246,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reportDeleted => 'Report deleted';
 
   @override
-  String get confirmDeleteSubmittedTitle => 'Delete this submitted report?';
+  String get reportGeneratedSuccess => 'Report generated successfully';
+
+  @override
+  String get confirmDeleteSubmittedTitle => 'Delete this report?';
 
   @override
   String get confirmDeleteSubmittedMessage =>

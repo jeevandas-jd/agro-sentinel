@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:agrisentinel/l10n/app_localizations.dart';
 
 import '../models/disaster_event_model.dart';
 import '../models/farm_model.dart';
@@ -74,6 +75,7 @@ class _DossierSubmitScreenState extends State<DossierSubmitScreen>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -86,9 +88,9 @@ class _DossierSubmitScreenState extends State<DossierSubmitScreen>
                 child: const Icon(Icons.check_circle, color: Colors.green, size: 92),
               ),
               const SizedBox(height: 16),
-              const Text(
-                'Report submitted successfully',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
+              Text(
+                l10n.reportGeneratedSuccess,
+                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),

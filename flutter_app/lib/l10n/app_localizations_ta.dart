@@ -155,7 +155,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get addFarm => 'பண்ணை சேர்';
 
   @override
-  String get statusSubmitted => 'சமர்ப்பிக்கப்பட்டது';
+  String get statusSubmitted => 'அறிக்கை உருவாக்கப்பட்டது';
 
   @override
   String get statusVerified => 'சரிபார்க்கப்பட்டது';
@@ -250,7 +250,10 @@ class AppLocalizationsTa extends AppLocalizations {
   String get reportDeleted => 'Report deleted';
 
   @override
-  String get confirmDeleteSubmittedTitle => 'Delete this submitted report?';
+  String get reportGeneratedSuccess => 'அறிக்கை வெற்றிகரமாக உருவாக்கப்பட்டது';
+
+  @override
+  String get confirmDeleteSubmittedTitle => 'இந்த அறிக்கையை நீக்கவா?';
 
   @override
   String get confirmDeleteSubmittedMessage =>

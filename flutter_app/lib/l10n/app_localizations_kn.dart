@@ -153,7 +153,7 @@ class AppLocalizationsKn extends AppLocalizations {
   String get addFarm => 'ಹೊಲ ಸೇರಿಸಿ';
 
   @override
-  String get statusSubmitted => 'ಸಲ್ಲಿಸಲಾಗಿದೆ';
+  String get statusSubmitted => 'ವರದಿ ರಚಿಸಲಾಗಿದೆ';
 
   @override
   String get statusVerified => 'ಪರಿಶೀಲಿಸಲಾಗಿದೆ';
@@ -247,7 +247,10 @@ class AppLocalizationsKn extends AppLocalizations {
   String get reportDeleted => 'Report deleted';
 
   @override
-  String get confirmDeleteSubmittedTitle => 'Delete this submitted report?';
+  String get reportGeneratedSuccess => 'ವರದಿ ಯಶಸ್ವಿಯಾಗಿ ರಚಿಸಲಾಗಿದೆ';
+
+  @override
+  String get confirmDeleteSubmittedTitle => 'ಈ ವರದಿಯನ್ನು ಅಳಿಸುವುದೇ?';
 
   @override
   String get confirmDeleteSubmittedMessage =>

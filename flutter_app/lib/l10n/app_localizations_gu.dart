@@ -152,7 +152,7 @@ class AppLocalizationsGu extends AppLocalizations {
   String get addFarm => 'ખેતર ઉમેરો';
 
   @override
-  String get statusSubmitted => 'સબમિટ';
+  String get statusSubmitted => 'રિપોર્ટ જનરેટ';
 
   @override
   String get statusVerified => 'ચકાસાયેલ';
@@ -246,7 +246,10 @@ class AppLocalizationsGu extends AppLocalizations {
   String get reportDeleted => 'Report deleted';
 
   @override
-  String get confirmDeleteSubmittedTitle => 'Delete this submitted report?';
+  String get reportGeneratedSuccess => 'રિપોર્ટ સફળતાપૂર્વક જનરેટ થયો';
+
+  @override
+  String get confirmDeleteSubmittedTitle => 'આ રિપોર્ટ કાઢી નાખવો?';
 
   @override
   String get confirmDeleteSubmittedMessage =>

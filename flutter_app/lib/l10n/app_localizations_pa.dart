@@ -154,7 +154,7 @@ class AppLocalizationsPa extends AppLocalizations {
   String get addFarm => 'ਖੇਤ ਜੋੜੋ';
 
   @override
-  String get statusSubmitted => 'ਜਮ੍ਹਾਂ';
+  String get statusSubmitted => 'ਰਿਪੋਰਟ ਤਿਆਰ';
 
   @override
   String get statusVerified => 'ਤਸਦੀਕ';
@@ -248,7 +248,10 @@ class AppLocalizationsPa extends AppLocalizations {
   String get reportDeleted => 'Report deleted';
 
   @override
-  String get confirmDeleteSubmittedTitle => 'Delete this submitted report?';
+  String get reportGeneratedSuccess => 'ਰਿਪੋਰਟ ਸਫਲਤਾਪੂਰਵਕ ਤਿਆਰ ਹੋਈ';
+
+  @override
+  String get confirmDeleteSubmittedTitle => 'ਇਹ ਰਿਪੋਰਟ ਮਿਟਾਓ?';
 
   @override
   String get confirmDeleteSubmittedMessage =>

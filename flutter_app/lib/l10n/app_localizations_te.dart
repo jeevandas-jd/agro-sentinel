@@ -155,7 +155,7 @@ class AppLocalizationsTe extends AppLocalizations {
   String get addFarm => 'పొలం జోడించు';
 
   @override
-  String get statusSubmitted => 'సమర్పించబడింది';
+  String get statusSubmitted => 'నివేదిక సృష్టించబడింది';
 
   @override
   String get statusVerified => 'ధృవీకరించబడింది';
@@ -249,7 +249,10 @@ class AppLocalizationsTe extends AppLocalizations {
   String get reportDeleted => 'Report deleted';
 
   @override
-  String get confirmDeleteSubmittedTitle => 'Delete this submitted report?';
+  String get reportGeneratedSuccess => 'నివేదిక విజయవంతంగా సృష్టించబడింది';
+
+  @override
+  String get confirmDeleteSubmittedTitle => 'ఈ నివేదికను తొలగించాలా?';
 
   @override
   String get confirmDeleteSubmittedMessage =>
