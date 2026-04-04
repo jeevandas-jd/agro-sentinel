@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 
@@ -113,14 +112,6 @@ class _AIResultScreenState extends State<AIResultScreen> {
       }
     }
     await _runSatelliteAnalysis();
-  }
-
-  String _formatGroqJson(dynamic value) {
-    if (value is Map<String, dynamic>) {
-      const encoder = JsonEncoder.withIndent('  ');
-      return encoder.convert(value);
-    }
-    return value?.toString() ?? '{}';
   }
 
   void _confirm() {
@@ -345,31 +336,6 @@ class _AIResultScreenState extends State<AIResultScreen> {
                       ),
                     ],
                   ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Theme(
-                data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-                child: ExpansionTile(
-                  tilePadding: EdgeInsets.zero,
-                  title: Text(
-                    'Raw model JSON',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                  ),
-                  children: [
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: SelectableText(
-                        _formatGroqJson(_satelliteData!['groq_response']),
-                        style: const TextStyle(
-                          fontFamily: 'monospace',
-                          fontSize: 11,
-                        ),
-                      ),
-                    ),
-                  ],
                 ),
               ),
             ],

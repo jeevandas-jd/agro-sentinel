@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
 import '../models/disaster_event_model.dart';
@@ -7,6 +8,7 @@ import '../services/disaster_event_service.dart';
 import '../services/voice_to_text_service.dart';
 import '../widgets/tutorial_wrapper.dart';
 import 'hotspot_map_screen.dart';
+import 'dart:math' as math;
 
 class NewDisasterScreen extends StatefulWidget {
   final FarmerModel farmer;
@@ -51,6 +53,18 @@ class _NewDisasterScreenState extends State<NewDisasterScreen> {
   }
 
   Future<void> _toggleVoiceToText() async {
+    if (kIsWeb) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Voice input works in the Android/iOS app. On web, type your description.',
+          ),
+        ),
+      );
+      return;
+    }
+
     if (_listening) {
       await _voiceService.stopListening();
       if (mounted) setState(() => _listening = false);
@@ -82,9 +96,9 @@ class _NewDisasterScreenState extends State<NewDisasterScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _listening = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Voice input unavailable: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Voice input unavailable: $e')));
     }
   }
 
@@ -178,140 +192,184 @@ class _NewDisasterScreenState extends State<NewDisasterScreen> {
         appBar: AppBar(title: const Text('Report Damage')),
         body: SafeArea(
           child: Column(
-          children: [
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  const Text(
-                    'Disaster type',
-                    style: TextStyle(fontWeight: FontWeight.w700),
-                  ),
-                  const SizedBox(height: 8),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: _types.map((type) {
-                        final selected = _selectedType == type;
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: ChoiceChip(
-                            label: Text(type),
-                            selected: selected,
-                            onSelected: (_) => setState(() => _selectedType = type),
+            children: [
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    const Text(
+                      'Disaster type',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(height: 8),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: _types.map((type) {
+                          final selected = _selectedType == type;
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: ChoiceChip(
+                              label: Text(type),
+                              selected: selected,
+                              onSelected: (_) =>
+                                  setState(() => _selectedType = type),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: const Text('When did it happen?'),
+                      subtitle: Text(_formatDateTime(_occurredAt)),
+                      trailing: const Icon(Icons.calendar_today_outlined),
+                      onTap: _pickDateTime,
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _descriptionController,
+                      minLines: 3,
+                      maxLines: 6,
+                      onChanged: (_) => setState(() {}),
+                      decoration: InputDecoration(
+                        labelText: 'Describe what happened',
+                        hintText:
+                            'e.g. Wild elephants destroyed the northern section last night',
+                        alignLabelWithHint: true,
+                        suffixIcon: IconButton(
+                          tooltip: kIsWeb
+                              ? 'Voice to text (mobile app only)'
+                              : (_listening
+                                  ? 'Stop voice input'
+                                  : 'Voice to text'),
+                          onPressed: _toggleVoiceToText,
+                          icon: TweenAnimationBuilder<double>(
+                            tween: Tween<double>(begin: 0, end: 1),
+                            duration: const Duration(milliseconds: 1000),
+                            curve: Curves.elasticOut,
+                            builder: (context, double value, Widget? child) {
+                              return Transform.rotate(
+                                angle: value < 1.0
+                                    ? 0.25 *
+                                        (1 - value) *
+                                        math.sin(value * 15)
+                                    : 0,
+                                child: child,
+                              );
+                            },
+                            child: AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 300),
+                              transitionBuilder:
+                                  (Widget child, Animation<double> animation) {
+                                return ScaleTransition(
+                                  scale: CurvedAnimation(
+                                    parent: animation,
+                                    curve: Curves.easeInOutBack,
+                                  ),
+                                  child: child,
+                                );
+                              },
+                              child: Icon(
+                                kIsWeb
+                                    ? Icons.mic_none_outlined
+                                    : (_listening
+                                        ? Icons.mic
+                                        : Icons.mic_none),
+                                key: ValueKey<Object>(
+                                  '${kIsWeb}_$_listening',
+                                ),
+                                color: kIsWeb
+                                    ? Theme.of(context).disabledColor
+                                    : (_listening
+                                        ? Colors.red
+                                        : Colors.green[700]),
+                                size: 35,
+                              ),
+                            ),
                           ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: const Text('When did it happen?'),
-                    subtitle: Text(_formatDateTime(_occurredAt)),
-                    trailing: const Icon(Icons.calendar_today_outlined),
-                    onTap: _pickDateTime,
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _descriptionController,
-                    minLines: 3,
-                    maxLines: 6,
-                    onChanged: (_) => setState(() {}),
-                    decoration: InputDecoration(
-                      labelText: 'Describe what happened',
-                      hintText:
-                          'e.g. Wild elephants destroyed the northern section last night',
-                      alignLabelWithHint: true,
-                      suffixIcon: IconButton(
-                        tooltip: _listening ? 'Stop voice input' : 'Voice to text',
-                        onPressed: _toggleVoiceToText,
-                        icon: Icon(
-                          _listening ? Icons.mic : Icons.mic_none,
-                          color: _listening ? Colors.red : null,
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 6),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: Text('${description.length} characters'),
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Crop details',
-                    style: TextStyle(fontWeight: FontWeight.w700),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: _cropAgeController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Age of crop (years)',
-                      hintText: 'e.g. 5',
-                      prefixIcon: Icon(Icons.calendar_month_outlined),
+                    const SizedBox(height: 6),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Text('${description.length} characters'),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Is the crop in bearing stage?',
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      _BearingChip(
-                        label: 'Bearing',
-                        selected: _isBearing == true,
-                        onTap: () => setState(
-                          () => _isBearing =
-                              _isBearing == true ? null : true,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      _BearingChip(
-                        label: 'Non-bearing',
-                        selected: _isBearing == false,
-                        onTap: () => setState(
-                          () => _isBearing =
-                              _isBearing == false ? null : false,
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (_isBearing == null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Text(
-                        'Tap one to select (optional)',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Theme.of(context).colorScheme.outline,
-                        ),
+                    const SizedBox(height: 20),
+                    const Text(
+                      'Crop details',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _cropAgeController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: 'Age of crop (years)',
+                        hintText: 'e.g. 5',
+                        prefixIcon: Icon(Icons.calendar_month_outlined),
                       ),
                     ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _saving ? null : _continue,
-                  child: _saving
-                      ? const SizedBox(
-                          height: 18,
-                          width: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Text('Continue to Map'),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Is the crop in bearing stage?',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        _BearingChip(
+                          label: 'Bearing',
+                          selected: _isBearing == true,
+                          onTap: () => setState(
+                            () => _isBearing = _isBearing == true ? null : true,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        _BearingChip(
+                          label: 'Non-bearing',
+                          selected: _isBearing == false,
+                          onTap: () => setState(
+                            () =>
+                                _isBearing = _isBearing == false ? null : false,
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (_isBearing == null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          'Tap one to select (optional)',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
-            ),
-          ],
-        ),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _saving ? null : _continue,
+                    child: _saving
+                        ? const SizedBox(
+                            height: 18,
+                            width: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('Continue to Map'),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -346,7 +404,9 @@ class _BearingChip extends StatelessWidget {
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: selected ? scheme.primaryContainer : scheme.surfaceContainerHighest,
+          color: selected
+              ? scheme.primaryContainer
+              : scheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(22),
           border: Border.all(
             color: selected ? scheme.primary : scheme.outlineVariant,
