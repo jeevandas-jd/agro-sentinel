@@ -9,7 +9,7 @@ class AppLocalizationsUr extends AppLocalizations {
   AppLocalizationsUr([String locale = 'ur']) : super(locale);
 
   @override
-  String get appTitle => 'ایگری سینٹینل';
+  String get appTitle => 'agroSentinel';
 
   @override
   String get cancel => 'منسوخ کریں';
@@ -153,7 +153,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get addFarm => 'کھیت شامل کریں';
 
   @override
-  String get statusSubmitted => 'جمع کرایا';
+  String get statusSubmitted => 'رپورٹ تیار';
 
   @override
   String get statusVerified => 'تصدیق شدہ';
@@ -212,4 +212,56 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get damaged => 'نقصان زدہ';
+
+  @override
+  String get downloadDamageReport => 'Download damage report';
+
+  @override
+  String get damageReportPdfReady =>
+      'PDF ready — use Save or Share from the preview.';
+
+  @override
+  String couldNotBuildPdf(String error) {
+    return 'Could not build PDF: $error';
+  }
+
+  @override
+  String get farmNotFoundForReport => 'Could not find farm for this report.';
+
+  @override
+  String get editDraftReport => 'Edit draft';
+
+  @override
+  String get deleteDraftReport => 'Delete draft';
+
+  @override
+  String get editDraftReportTitle => 'Edit draft report';
+
+  @override
+  String get confirmDeleteDraftTitle => 'Delete this draft?';
+
+  @override
+  String get confirmDeleteDraftMessage =>
+      'This will permanently remove this draft report. This cannot be undone.';
+
+  @override
+  String get reportDeleted => 'Report deleted';
+
+  @override
+  String get reportGeneratedSuccess => 'رپورٹ کامیابی سے تیار ہو گئی';
+
+  @override
+  String get confirmDeleteSubmittedTitle => 'یہ رپورٹ حذف کریں؟';
+
+  @override
+  String get confirmDeleteSubmittedMessage =>
+      'This will permanently remove this report and its stored data. This cannot be undone.';
+
+  @override
+  String get deleteSubmittedReport => 'Delete report';
+
+  @override
+  String couldNotDeleteDraft(String error) {
+    return 'Could not delete: $error';
+  }
 }

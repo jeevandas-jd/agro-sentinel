@@ -119,7 +119,7 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In en, this message translates to:
-  /// **'AgriSentinel'**
+  /// **'agroSentinel'**
   String get appTitle;
 
   /// No description provided for @cancel.
@@ -395,7 +395,7 @@ abstract class AppLocalizations {
   /// No description provided for @statusSubmitted.
   ///
   /// In en, this message translates to:
-  /// **'Submitted'**
+  /// **'Report generated'**
   String get statusSubmitted;
 
   /// No description provided for @statusVerified.
@@ -511,6 +511,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Damaged'**
   String get damaged;
+
+  /// No description provided for @downloadDamageReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Download damage report'**
+  String get downloadDamageReport;
+
+  /// No description provided for @damageReportPdfReady.
+  ///
+  /// In en, this message translates to:
+  /// **'PDF ready — use Save or Share from the preview.'**
+  String get damageReportPdfReady;
+
+  /// No description provided for @couldNotBuildPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not build PDF: {error}'**
+  String couldNotBuildPdf(String error);
+
+  /// No description provided for @farmNotFoundForReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not find farm for this report.'**
+  String get farmNotFoundForReport;
+
+  /// No description provided for @editDraftReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit draft'**
+  String get editDraftReport;
+
+  /// No description provided for @deleteDraftReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete draft'**
+  String get deleteDraftReport;
+
+  /// No description provided for @editDraftReportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit draft report'**
+  String get editDraftReportTitle;
+
+  /// No description provided for @confirmDeleteDraftTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this draft?'**
+  String get confirmDeleteDraftTitle;
+
+  /// No description provided for @confirmDeleteDraftMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This will permanently remove this draft report. This cannot be undone.'**
+  String get confirmDeleteDraftMessage;
+
+  /// No description provided for @reportDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Report deleted'**
+  String get reportDeleted;
+
+  /// No description provided for @reportGeneratedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Report generated successfully'**
+  String get reportGeneratedSuccess;
+
+  /// No description provided for @confirmDeleteSubmittedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this report?'**
+  String get confirmDeleteSubmittedTitle;
+
+  /// No description provided for @confirmDeleteSubmittedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This will permanently remove this report and its stored data. This cannot be undone.'**
+  String get confirmDeleteSubmittedMessage;
+
+  /// No description provided for @deleteSubmittedReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete report'**
+  String get deleteSubmittedReport;
+
+  /// No description provided for @couldNotDeleteDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not delete: {error}'**
+  String couldNotDeleteDraft(String error);
 }
 
 class _AppLocalizationsDelegate

@@ -9,7 +9,7 @@ class AppLocalizationsGu extends AppLocalizations {
   AppLocalizationsGu([String locale = 'gu']) : super(locale);
 
   @override
-  String get appTitle => 'એગ્રીસેન્ટિનેલ';
+  String get appTitle => 'agroSentinel';
 
   @override
   String get cancel => 'રદ કરો';
@@ -152,7 +152,7 @@ class AppLocalizationsGu extends AppLocalizations {
   String get addFarm => 'ખેતર ઉમેરો';
 
   @override
-  String get statusSubmitted => 'સબમિટ';
+  String get statusSubmitted => 'રિપોર્ટ જનરેટ';
 
   @override
   String get statusVerified => 'ચકાસાયેલ';
@@ -210,4 +210,56 @@ class AppLocalizationsGu extends AppLocalizations {
 
   @override
   String get damaged => 'ક્ષતિગ્રસ્ત';
+
+  @override
+  String get downloadDamageReport => 'Download damage report';
+
+  @override
+  String get damageReportPdfReady =>
+      'PDF ready — use Save or Share from the preview.';
+
+  @override
+  String couldNotBuildPdf(String error) {
+    return 'Could not build PDF: $error';
+  }
+
+  @override
+  String get farmNotFoundForReport => 'Could not find farm for this report.';
+
+  @override
+  String get editDraftReport => 'Edit draft';
+
+  @override
+  String get deleteDraftReport => 'Delete draft';
+
+  @override
+  String get editDraftReportTitle => 'Edit draft report';
+
+  @override
+  String get confirmDeleteDraftTitle => 'Delete this draft?';
+
+  @override
+  String get confirmDeleteDraftMessage =>
+      'This will permanently remove this draft report. This cannot be undone.';
+
+  @override
+  String get reportDeleted => 'Report deleted';
+
+  @override
+  String get reportGeneratedSuccess => 'રિપોર્ટ સફળતાપૂર્વક જનરેટ થયો';
+
+  @override
+  String get confirmDeleteSubmittedTitle => 'આ રિપોર્ટ કાઢી નાખવો?';
+
+  @override
+  String get confirmDeleteSubmittedMessage =>
+      'This will permanently remove this report and its stored data. This cannot be undone.';
+
+  @override
+  String get deleteSubmittedReport => 'Delete report';
+
+  @override
+  String couldNotDeleteDraft(String error) {
+    return 'Could not delete: $error';
+  }
 }

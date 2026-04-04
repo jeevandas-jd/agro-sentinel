@@ -1,10 +1,10 @@
-import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 
+import '../core/dart_define_config.dart';
 import '../models/disaster_event_model.dart';
 import 'ai_narrative_service.dart';
+import 'gemini_narrative_client.dart';
+import 'satellite_service.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 //  ReportContent — structured output handed to the PDF / Dossier screen.
@@ -69,15 +69,12 @@ class ReportContent {
 //  ReportService
 // ═══════════════════════════════════════════════════════════════════════════════
 class ReportService {
-  ReportService({String groqApiKey = '', FirebaseFirestore? firestore})
-    : _groqApiKey = groqApiKey,
+  ReportService({String? geminiApiKey, FirebaseFirestore? firestore})
+    : _geminiApiKeyOverride = geminiApiKey,
       _firestore = firestore ?? FirebaseFirestore.instance;
 
-  final String _groqApiKey;
+  final String? _geminiApiKeyOverride;
   final FirebaseFirestore _firestore;
-
-  static const _endpoint = 'https://api.groq.com/openai/v1/chat/completions';
-  static const _model = 'meta-llama/llama-4-scout-17b-16e-instruct';
 
   /// Orchestrates all three service outputs → AI narrative → ReportContent.
   ///
@@ -112,18 +109,27 @@ class ReportService {
           (satellite['affected_area_ha'] as num?)?.toDouble() ?? 0.0,
       satelliteSummary: (satellite['summary'] as String?) ?? '',
       capturedImagePath: capturedImagePath,
+      satelliteGroqOk: satellite['groq_ok'] as bool? ?? false,
+      satelliteGroqError: (satellite['groq_error'] as String?)?.trim() ?? '',
+      satelliteGroqConfidence: SatelliteService.groqModelConfidence(satellite),
+      satelliteGroqDetailsJson:
+          SatelliteService.groqResponseJsonForNarrative(satellite),
     );
 
     // ── 3. Generate the AI narrative via AINarrativeService ──────────────────
     final narrativeService = AINarrativeService(
       firestore: _firestore,
-      caller: _groqApiKey.isNotEmpty ? _groqCaller : null,
+      caller: (prompt) async {
+        final key = _geminiApiKeyOverride ?? await loadGeminiApiKey();
+        if (key.isEmpty) return '';
+        return GeminiNarrativeClient.complete(apiKey: key, prompt: prompt);
+      },
     );
-    final narrative = await narrativeService.generateNarrative(enrichedEvent);
+    final narrativeResult = await narrativeService.generateNarrative(enrichedEvent);
 
     // ── 4. Return fully structured ReportContent for the PDF renderer ─────────
     return ReportContent(
-      narrative: narrative,
+      narrative: narrativeResult.report,
       farmId: enrichedEvent.farmId,
       farmerUid: enrichedEvent.farmerUid,
       disasterType: enrichedEvent.disasterType,
@@ -147,43 +153,5 @@ class ReportService {
       afterImageAsset:
           (satellite['after_image'] as String?) ?? 'assets/demo/after.png',
     );
-  }
-
-  // ── Groq text caller passed to AINarrativeService ────────────────────────
-  Future<String> _groqCaller(String prompt) async {
-    try {
-      final res = await http.post(
-        Uri.parse(_endpoint),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $_groqApiKey',
-        },
-        body: jsonEncode({
-          'model': _model,
-          'temperature': 0.2,
-          'max_tokens': 512,
-          'messages': [
-            {
-              'role': 'system',
-              'content':
-                  'You are a certified agricultural insurance assessment officer.',
-            },
-            {'role': 'user', 'content': prompt},
-          ],
-        }),
-      );
-
-      if (res.statusCode != 200) {
-        debugPrint('[ReportService] Groq ${res.statusCode}: ${res.body}');
-        return '';
-      }
-
-      return ((jsonDecode(res.body) as Map)['choices'][0]['message']['content']
-              as String)
-          .trim();
-    } catch (e) {
-      debugPrint('[ReportService] Groq error: $e');
-      return '';
-    }
   }
 }

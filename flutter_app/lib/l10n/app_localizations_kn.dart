@@ -9,7 +9,7 @@ class AppLocalizationsKn extends AppLocalizations {
   AppLocalizationsKn([String locale = 'kn']) : super(locale);
 
   @override
-  String get appTitle => 'ಅಗ್ರಿಸೆಂಟಿನೆಲ್';
+  String get appTitle => 'agroSentinel';
 
   @override
   String get cancel => 'ರದ್ದು ಮಾಡಿ';
@@ -153,7 +153,7 @@ class AppLocalizationsKn extends AppLocalizations {
   String get addFarm => 'ಹೊಲ ಸೇರಿಸಿ';
 
   @override
-  String get statusSubmitted => 'ಸಲ್ಲಿಸಲಾಗಿದೆ';
+  String get statusSubmitted => 'ವರದಿ ರಚಿಸಲಾಗಿದೆ';
 
   @override
   String get statusVerified => 'ಪರಿಶೀಲಿಸಲಾಗಿದೆ';
@@ -211,4 +211,56 @@ class AppLocalizationsKn extends AppLocalizations {
 
   @override
   String get damaged => 'ಹಾನಿಗೊಂಡ';
+
+  @override
+  String get downloadDamageReport => 'Download damage report';
+
+  @override
+  String get damageReportPdfReady =>
+      'PDF ready — use Save or Share from the preview.';
+
+  @override
+  String couldNotBuildPdf(String error) {
+    return 'Could not build PDF: $error';
+  }
+
+  @override
+  String get farmNotFoundForReport => 'Could not find farm for this report.';
+
+  @override
+  String get editDraftReport => 'Edit draft';
+
+  @override
+  String get deleteDraftReport => 'Delete draft';
+
+  @override
+  String get editDraftReportTitle => 'Edit draft report';
+
+  @override
+  String get confirmDeleteDraftTitle => 'Delete this draft?';
+
+  @override
+  String get confirmDeleteDraftMessage =>
+      'This will permanently remove this draft report. This cannot be undone.';
+
+  @override
+  String get reportDeleted => 'Report deleted';
+
+  @override
+  String get reportGeneratedSuccess => 'ವರದಿ ಯಶಸ್ವಿಯಾಗಿ ರಚಿಸಲಾಗಿದೆ';
+
+  @override
+  String get confirmDeleteSubmittedTitle => 'ಈ ವರದಿಯನ್ನು ಅಳಿಸುವುದೇ?';
+
+  @override
+  String get confirmDeleteSubmittedMessage =>
+      'This will permanently remove this report and its stored data. This cannot be undone.';
+
+  @override
+  String get deleteSubmittedReport => 'Delete report';
+
+  @override
+  String couldNotDeleteDraft(String error) {
+    return 'Could not delete: $error';
+  }
 }

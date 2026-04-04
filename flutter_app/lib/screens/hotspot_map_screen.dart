@@ -9,10 +9,12 @@ import '../models/farmer_model.dart';
 import '../models/hotspot_model.dart';
 import '../services/ai_narrative_service.dart';
 import '../services/disaster_event_service.dart';
+import '../services/report_media_storage.dart';
+import '../services/satellite_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/tutorial_wrapper.dart';
-import 'camera_capture_screen.dart';
 import 'dossier_review_screen.dart';
+import 'truth_walk_screen.dart';
 
 class HotspotMapScreen extends StatefulWidget {
   final FarmModel farm;
@@ -36,6 +38,9 @@ class _HotspotMapScreenState extends State<HotspotMapScreen> {
   gmaps.BitmapDescriptor? _hotspotIcon;
   gmaps.BitmapDescriptor? _visitedHotspotIcon;
   bool _generating = false;
+  bool _captureInProgress = false;
+
+  bool get _blockHotspotEdits => _generating || _captureInProgress;
 
   @override
   void initState() {
@@ -75,6 +80,7 @@ class _HotspotMapScreenState extends State<HotspotMapScreen> {
   }
 
   Future<void> _confirmAndAddHotspot(gmaps.LatLng pos) async {
+    if (_blockHotspotEdits) return;
     final shouldAdd = await showDialog<bool>(
       context: context,
       builder: (context) {
@@ -103,6 +109,7 @@ class _HotspotMapScreenState extends State<HotspotMapScreen> {
   }
 
   Future<void> _useGps() async {
+    if (_blockHotspotEdits) return;
     LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied ||
         permission == LocationPermission.deniedForever) {
@@ -125,19 +132,26 @@ class _HotspotMapScreenState extends State<HotspotMapScreen> {
   }
 
   Future<void> _openCapture(HotspotModel hotspot) async {
-    final updated = await Navigator.of(context).push<HotspotModel>(
-      MaterialPageRoute(
-        builder: (_) => CameraCaptureScreen(hotspot: hotspot),
-      ),
-    );
-    if (!mounted || updated == null) {
-      return;
+    setState(() => _captureInProgress = true);
+    try {
+      final updated = await Navigator.of(context).push<HotspotModel>(
+        MaterialPageRoute(
+          builder: (_) => TruthWalkScreen(hotspot: hotspot),
+        ),
+      );
+      if (!mounted || updated == null) {
+        return;
+      }
+      setState(() {
+        _hotspots = _hotspots
+            .map((item) => item.id == updated.id ? updated : item)
+            .toList();
+      });
+    } finally {
+      if (mounted) {
+        setState(() => _captureInProgress = false);
+      }
     }
-    setState(() {
-      _hotspots = _hotspots
-          .map((item) => item.id == updated.id ? updated : item)
-          .toList();
-    });
   }
 
   Future<void> _finish() async {
@@ -148,23 +162,56 @@ class _HotspotMapScreenState extends State<HotspotMapScreen> {
 
     final treesLost = _hotspots.fold<int>(0, (sum, hotspot) => sum + hotspot.treesLost);
 
+    Map<String, dynamic>? satellite;
+    try {
+      satellite = await SatelliteService.analyze(
+        widget.farm.center.latitude,
+        widget.farm.center.longitude,
+      );
+    } catch (_) {
+      satellite = null;
+    }
+
     // Build event with real hotspot results so the narrative service has full data.
-    final eventWithResults = widget.initialEvent.copyWith(
+    var eventWithResults = widget.initialEvent.copyWith(
       hotspots: _hotspots,
       totalTreesLost: treesLost,
       estimatedLossInr: treesLost * 2500,
       status: 'submitted',
     );
 
+    if (satellite != null) {
+      final destroyedM2 =
+          (satellite['destroyed_area_m2'] as num?)?.toDouble() ?? 0.0;
+      eventWithResults = eventWithResults.copyWith(
+        damageScore: (satellite['damage_score'] as num?)?.toDouble() ?? 0.0,
+        affectedAreaHa:
+            (satellite['affected_area_ha'] as num?)?.toDouble() ?? 0.0,
+        destroyedAreaM2: destroyedM2,
+        satelliteSummary: (satellite['summary'] as String?) ?? '',
+        satelliteGroqOk: satellite['groq_ok'] as bool? ?? false,
+        satelliteGroqError: (satellite['groq_error'] as String?)?.trim() ?? '',
+        satelliteGroqConfidence:
+            SatelliteService.groqModelConfidence(satellite),
+        satelliteGroqDetailsJson:
+            SatelliteService.groqResponseJsonForNarrative(satellite),
+      );
+    }
+
     // Generate a data-driven narrative from actual analysis results.
-    final narrative = await AINarrativeService().generateNarrative(eventWithResults);
+    final narrativeResult =
+        await narrativeServiceWithOptionalGemini().generateNarrative(eventWithResults);
 
     if (!mounted) return;
 
-    final event = eventWithResults.copyWith(aiNarrative: narrative);
+    final event = eventWithResults.copyWith(
+      aiNarrative: narrativeResult.report,
+      aiNarrativeShort: narrativeResult.preview,
+    );
 
     try {
-      await _eventService.saveEvent(event);
+      final persisted = await ReportMediaStorage.persistMediaForEvent(event);
+      await _eventService.saveEvent(persisted);
       if (!mounted) return;
       setState(() => _generating = false);
       Navigator.of(context).push(
@@ -172,7 +219,7 @@ class _HotspotMapScreenState extends State<HotspotMapScreen> {
           builder: (_) => DossierReviewScreen(
             farm: widget.farm,
             farmer: widget.farmer,
-            event: event,
+            event: persisted,
           ),
         ),
       );
@@ -225,17 +272,20 @@ class _HotspotMapScreenState extends State<HotspotMapScreen> {
         body: Stack(
           children: [
           Positioned.fill(
-            child: gmaps.GoogleMap(
-              initialCameraPosition: gmaps.CameraPosition(
-                target: gmaps.LatLng(widget.farm.center.latitude, widget.farm.center.longitude),
-                zoom: 16,
+            child: IgnorePointer(
+              ignoring: _blockHotspotEdits,
+              child: gmaps.GoogleMap(
+                initialCameraPosition: gmaps.CameraPosition(
+                  target: gmaps.LatLng(widget.farm.center.latitude, widget.farm.center.longitude),
+                  zoom: 16,
+                ),
+                mapType: gmaps.MapType.satellite,
+                myLocationEnabled: true,
+                myLocationButtonEnabled: false,
+                onLongPress: _blockHotspotEdits ? null : _confirmAndAddHotspot,
+                markers: markers,
+                polygons: farmPolygon != null ? {farmPolygon} : const {},
               ),
-              mapType: gmaps.MapType.satellite,
-              myLocationEnabled: true,
-              myLocationButtonEnabled: false,
-              onLongPress: _confirmAndAddHotspot,
-              markers: markers,
-              polygons: farmPolygon != null ? {farmPolygon} : const {},
             ),
           ),
           Positioned(
@@ -283,14 +333,16 @@ class _HotspotMapScreenState extends State<HotspotMapScreen> {
                       children: [
                         Expanded(
                           child: OutlinedButton(
-                            onPressed: _hotspots.isEmpty ? null : () => setState(() => _hotspots = []),
+                            onPressed: (_hotspots.isEmpty || _blockHotspotEdits)
+                                ? null
+                                : () => setState(() => _hotspots = []),
                             child: const Text('Clear Hotspots'),
                           ),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: _useGps,
+                            onPressed: _blockHotspotEdits ? null : _useGps,
                             child: const Text('Use My GPS Location'),
                           ),
                         ),
@@ -313,7 +365,9 @@ class _HotspotMapScreenState extends State<HotspotMapScreen> {
                             ? 'Photo taken and AI analysed'
                             : 'Photo not taken yet'),
                         trailing: const Icon(Icons.camera_alt_outlined),
-                        onTap: () => _openCapture(hotspot),
+                        onTap: _blockHotspotEdits
+                            ? null
+                            : () => _openCapture(hotspot),
                       );
                     }),
                     const SizedBox(height: 10),

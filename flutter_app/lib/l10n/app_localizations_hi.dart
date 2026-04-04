@@ -9,7 +9,7 @@ class AppLocalizationsHi extends AppLocalizations {
   AppLocalizationsHi([String locale = 'hi']) : super(locale);
 
   @override
-  String get appTitle => 'एग्रीसेंटिनल';
+  String get appTitle => 'agroSentinel';
 
   @override
   String get cancel => 'रद्द करें';
@@ -154,7 +154,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get addFarm => 'खेत जोड़ें';
 
   @override
-  String get statusSubmitted => 'सबमिट किया';
+  String get statusSubmitted => 'रिपोर्ट तैयार';
 
   @override
   String get statusVerified => 'सत्यापित';
@@ -212,4 +212,56 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get damaged => 'क्षतिग्रस्त';
+
+  @override
+  String get downloadDamageReport => 'Download damage report';
+
+  @override
+  String get damageReportPdfReady =>
+      'PDF ready — use Save or Share from the preview.';
+
+  @override
+  String couldNotBuildPdf(String error) {
+    return 'Could not build PDF: $error';
+  }
+
+  @override
+  String get farmNotFoundForReport => 'Could not find farm for this report.';
+
+  @override
+  String get editDraftReport => 'Edit draft';
+
+  @override
+  String get deleteDraftReport => 'Delete draft';
+
+  @override
+  String get editDraftReportTitle => 'Edit draft report';
+
+  @override
+  String get confirmDeleteDraftTitle => 'Delete this draft?';
+
+  @override
+  String get confirmDeleteDraftMessage =>
+      'This will permanently remove this draft report. This cannot be undone.';
+
+  @override
+  String get reportDeleted => 'Report deleted';
+
+  @override
+  String get reportGeneratedSuccess => 'रिपोर्ट सफलतापूर्वक तैयार हो गई';
+
+  @override
+  String get confirmDeleteSubmittedTitle => 'इस रिपोर्ट को हटाएं?';
+
+  @override
+  String get confirmDeleteSubmittedMessage =>
+      'This will permanently remove this report and its stored data. This cannot be undone.';
+
+  @override
+  String get deleteSubmittedReport => 'Delete report';
+
+  @override
+  String couldNotDeleteDraft(String error) {
+    return 'Could not delete: $error';
+  }
 }

@@ -1,6 +1,6 @@
 {
   "@@locale": "gu",
-  "appTitle": "એગ્રીસેન્ટિનેલ",
+  "appTitle": "agroSentinel",
   "cancel": "રદ કરો",
   "delete": "કાઢી નાખો",
   "update": "અપડેટ",
@@ -53,7 +53,7 @@
   "loadingEvents": "ઘટનાઓ લોડ થઈ રહી છે…",
   "couldNotLoadEvents": "ઘટનાઓ લોડ નહીં થઈ શકી.",
   "addFarm": "ખેતર ઉમેરો",
-  "statusSubmitted": "સબમિટ",
+  "statusSubmitted": "રિપોર્ટ જનરેટ",
   "statusVerified": "ચકાસાયેલ",
   "statusDraft": "ડ્રાફ્ટ",
   "navHome": "હોમ",
@@ -72,5 +72,34 @@
   "unlockAt10m": "10 મીટર પર અનલૉક",
   "needlePoints": "સોય ઉપગ્રહ-શોધ હોટસ્પોટ ભણી ઇશારો કરે છે",
   "healthy": "સ્વસ્થ",
-  "damaged": "ક્ષતિગ્રસ્ત"
+  "damaged": "ક્ષતિગ્રસ્ત",
+  "downloadDamageReport": "Download damage report",
+  "damageReportPdfReady": "PDF ready — use Save or Share from the preview.",
+  "couldNotBuildPdf": "Could not build PDF: {error}",
+  "@couldNotBuildPdf": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "farmNotFoundForReport": "Could not find farm for this report.",
+  "editDraftReport": "Edit draft",
+  "deleteDraftReport": "Delete draft",
+  "editDraftReportTitle": "Edit draft report",
+  "confirmDeleteDraftTitle": "Delete this draft?",
+  "confirmDeleteDraftMessage": "This will permanently remove this draft report. This cannot be undone.",
+  "reportDeleted": "Report deleted",
+  "reportGeneratedSuccess": "રિપોર્ટ સફળતાપૂર્વક જનરેટ થયો",
+  "confirmDeleteSubmittedTitle": "આ રિપોર્ટ કાઢી નાખવો?",
+  "confirmDeleteSubmittedMessage": "This will permanently remove this report and its stored data. This cannot be undone.",
+  "deleteSubmittedReport": "Delete report",
+  "couldNotDeleteDraft": "Could not delete: {error}",
+  "@couldNotDeleteDraft": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  }
 }

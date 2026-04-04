@@ -9,7 +9,7 @@ class AppLocalizationsTe extends AppLocalizations {
   AppLocalizationsTe([String locale = 'te']) : super(locale);
 
   @override
-  String get appTitle => 'అగ్రిసెంటినెల్';
+  String get appTitle => 'agroSentinel';
 
   @override
   String get cancel => 'రద్దు చేయి';
@@ -155,7 +155,7 @@ class AppLocalizationsTe extends AppLocalizations {
   String get addFarm => 'పొలం జోడించు';
 
   @override
-  String get statusSubmitted => 'సమర్పించబడింది';
+  String get statusSubmitted => 'నివేదిక సృష్టించబడింది';
 
   @override
   String get statusVerified => 'ధృవీకరించబడింది';
@@ -213,4 +213,56 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get damaged => 'దెబ్బతిన్న';
+
+  @override
+  String get downloadDamageReport => 'Download damage report';
+
+  @override
+  String get damageReportPdfReady =>
+      'PDF ready — use Save or Share from the preview.';
+
+  @override
+  String couldNotBuildPdf(String error) {
+    return 'Could not build PDF: $error';
+  }
+
+  @override
+  String get farmNotFoundForReport => 'Could not find farm for this report.';
+
+  @override
+  String get editDraftReport => 'Edit draft';
+
+  @override
+  String get deleteDraftReport => 'Delete draft';
+
+  @override
+  String get editDraftReportTitle => 'Edit draft report';
+
+  @override
+  String get confirmDeleteDraftTitle => 'Delete this draft?';
+
+  @override
+  String get confirmDeleteDraftMessage =>
+      'This will permanently remove this draft report. This cannot be undone.';
+
+  @override
+  String get reportDeleted => 'Report deleted';
+
+  @override
+  String get reportGeneratedSuccess => 'నివేదిక విజయవంతంగా సృష్టించబడింది';
+
+  @override
+  String get confirmDeleteSubmittedTitle => 'ఈ నివేదికను తొలగించాలా?';
+
+  @override
+  String get confirmDeleteSubmittedMessage =>
+      'This will permanently remove this report and its stored data. This cannot be undone.';
+
+  @override
+  String get deleteSubmittedReport => 'Delete report';
+
+  @override
+  String couldNotDeleteDraft(String error) {
+    return 'Could not delete: $error';
+  }
 }

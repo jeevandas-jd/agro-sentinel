@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 
 import '../models/hotspot_model.dart';
 import '../services/inference_service.dart';
+import '../services/satellite_service.dart';
 import '../widgets/tutorial_wrapper.dart';
 
 class AIResultScreen extends StatefulWidget {
@@ -30,10 +31,43 @@ class _AIResultScreenState extends State<AIResultScreen> {
   int _treesAffected = 0;
   String? _errorMessage;
 
+  bool _satelliteLoading = false;
+  Map<String, dynamic>? _satelliteData;
+  String? _satelliteError;
+
   @override
   void initState() {
     super.initState();
     unawaited(_runAnalysis());
+  }
+
+  Future<void> _runSatelliteAnalysis() async {
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _satelliteLoading = true;
+      _satelliteError = null;
+    });
+    try {
+      final data = await SatelliteService.analyze(
+        widget.hotspot.latitude,
+        widget.hotspot.longitude,
+      );
+      if (mounted) {
+        setState(() {
+          _satelliteData = data;
+          _satelliteLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _satelliteError = e.toString().split('\n').first;
+          _satelliteLoading = false;
+        });
+      }
+    }
   }
 
   Future<void> _runAnalysis() async {
@@ -48,6 +82,7 @@ class _AIResultScreenState extends State<AIResultScreen> {
           _loading = false;
         });
       }
+      await _runSatelliteAnalysis();
       return;
     }
 
@@ -76,6 +111,7 @@ class _AIResultScreenState extends State<AIResultScreen> {
         });
       }
     }
+    await _runSatelliteAnalysis();
   }
 
   void _confirm() {
@@ -168,6 +204,142 @@ class _AIResultScreenState extends State<AIResultScreen> {
                 ),
               ),
             ),
+          if (!_loading) ...[
+            const SizedBox(height: 20),
+            Text(
+              'Satellite (before / after)',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: _SatelliteThumb(
+                    label: 'Before',
+                    assetPath: _satelliteData?['before_image'] as String? ??
+                        'assets/demo/before.png',
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _SatelliteThumb(
+                    label: 'After',
+                    assetPath: _satelliteData?['after_image'] as String? ??
+                        'assets/demo/after.png',
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (_satelliteLoading)
+              const Card(
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: Text('Calling Groq vision model…'),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else if (_satelliteError != null)
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    _satelliteError!,
+                    style: const TextStyle(color: Colors.orange),
+                  ),
+                ),
+              )
+            else if (_satelliteData != null) ...[
+              if (!(_satelliteData!['groq_ok'] as bool? ?? false))
+                Card(
+                  color: Colors.amber.shade50,
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(Icons.warning_amber_rounded,
+                            color: Colors.amber.shade900),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            _satelliteData!['groq_error'] as String? ??
+                                'Groq did not return a live result. Values below are placeholders.',
+                            style: TextStyle(
+                              color: Colors.amber.shade900,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              if (!(_satelliteData!['groq_ok'] as bool? ?? false))
+                const SizedBox(height: 8),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Satellite assessment',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                      ),
+                      const SizedBox(height: 10),
+                      _SatelliteMetric(
+                        label: 'Damage score',
+                        value:
+                            '${(_satelliteData!['damage_score'] as num?)?.toStringAsFixed(1) ?? '—'} / 100',
+                      ),
+                      _SatelliteMetric(
+                        label: 'Model confidence',
+                        value: _satelliteData!['confidence'] != null
+                            ? '${((_satelliteData!['confidence'] as num) * 100).toStringAsFixed(0)}%'
+                            : '—',
+                      ),
+                      _SatelliteMetric(
+                        label: 'Affected area',
+                        value:
+                            '${(_satelliteData!['affected_area_ha'] as num?)?.toStringAsFixed(2) ?? '—'} ha',
+                      ),
+                      _SatelliteMetric(
+                        label: 'Destroyed canopy',
+                        value:
+                            '${(_satelliteData!['destroyed_area_m2'] as num?)?.toStringAsFixed(0) ?? '—'} m²',
+                      ),
+                      _SatelliteMetric(
+                        label: 'Trees lost (est.)',
+                        value:
+                            '${_satelliteData!['trees_lost'] ?? '—'}',
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        _satelliteData!['summary'] as String? ?? '',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ],
           const SizedBox(height: 12),
           ElevatedButton(
             onPressed: _loading ? null : _confirm,
@@ -180,6 +352,92 @@ class _AIResultScreenState extends State<AIResultScreen> {
           ),
         ],
         ),
+      ),
+    );
+  }
+}
+
+class _SatelliteThumb extends StatelessWidget {
+  const _SatelliteThumb({required this.label, required this.assetPath});
+
+  final String label;
+  final String assetPath;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          label,
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+        ),
+        const SizedBox(height: 6),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: AspectRatio(
+            aspectRatio: 1,
+            child: Image.asset(
+              assetPath,
+              fit: BoxFit.cover,
+              errorBuilder: (_, _, _) => ColoredBox(
+                color: Colors.grey.shade800,
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: Text(
+                      'Missing $assetPath\nAdd file under assets/demo/',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.grey.shade300,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SatelliteMetric extends StatelessWidget {
+  const _SatelliteMetric({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 140,
+            child: Text(
+              label,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+          ),
+        ],
       ),
     );
   }

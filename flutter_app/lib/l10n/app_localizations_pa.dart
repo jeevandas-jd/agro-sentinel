@@ -9,7 +9,7 @@ class AppLocalizationsPa extends AppLocalizations {
   AppLocalizationsPa([String locale = 'pa']) : super(locale);
 
   @override
-  String get appTitle => 'ਐਗਰੀਸੈਂਟੀਨਲ';
+  String get appTitle => 'agroSentinel';
 
   @override
   String get cancel => 'ਰੱਦ ਕਰੋ';
@@ -154,7 +154,7 @@ class AppLocalizationsPa extends AppLocalizations {
   String get addFarm => 'ਖੇਤ ਜੋੜੋ';
 
   @override
-  String get statusSubmitted => 'ਜਮ੍ਹਾਂ';
+  String get statusSubmitted => 'ਰਿਪੋਰਟ ਤਿਆਰ';
 
   @override
   String get statusVerified => 'ਤਸਦੀਕ';
@@ -212,4 +212,56 @@ class AppLocalizationsPa extends AppLocalizations {
 
   @override
   String get damaged => 'ਨੁਕਸਾਨਿਆ';
+
+  @override
+  String get downloadDamageReport => 'Download damage report';
+
+  @override
+  String get damageReportPdfReady =>
+      'PDF ready — use Save or Share from the preview.';
+
+  @override
+  String couldNotBuildPdf(String error) {
+    return 'Could not build PDF: $error';
+  }
+
+  @override
+  String get farmNotFoundForReport => 'Could not find farm for this report.';
+
+  @override
+  String get editDraftReport => 'Edit draft';
+
+  @override
+  String get deleteDraftReport => 'Delete draft';
+
+  @override
+  String get editDraftReportTitle => 'Edit draft report';
+
+  @override
+  String get confirmDeleteDraftTitle => 'Delete this draft?';
+
+  @override
+  String get confirmDeleteDraftMessage =>
+      'This will permanently remove this draft report. This cannot be undone.';
+
+  @override
+  String get reportDeleted => 'Report deleted';
+
+  @override
+  String get reportGeneratedSuccess => 'ਰਿਪੋਰਟ ਸਫਲਤਾਪੂਰਵਕ ਤਿਆਰ ਹੋਈ';
+
+  @override
+  String get confirmDeleteSubmittedTitle => 'ਇਹ ਰਿਪੋਰਟ ਮਿਟਾਓ?';
+
+  @override
+  String get confirmDeleteSubmittedMessage =>
+      'This will permanently remove this report and its stored data. This cannot be undone.';
+
+  @override
+  String get deleteSubmittedReport => 'Delete report';
+
+  @override
+  String couldNotDeleteDraft(String error) {
+    return 'Could not delete: $error';
+  }
 }

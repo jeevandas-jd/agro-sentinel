@@ -115,7 +115,7 @@ class DemoData {
     {
       'step': '2',
       'title': 'GPS Truth Walk',
-      'subtitle': 'Farmer navigated to hotspot using AgriSentinel • 12 Mar 2024',
+      'subtitle': 'Farmer navigated to hotspot using agroSentinel • 12 Mar 2024',
       'icon': 'gps',
     },
     {

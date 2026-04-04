@@ -1,6 +1,6 @@
 {
   "@@locale": "kn",
-  "appTitle": "ಅಗ್ರಿಸೆಂಟಿನೆಲ್",
+  "appTitle": "agroSentinel",
   "cancel": "ರದ್ದು ಮಾಡಿ",
   "delete": "ಅಳಿಸಿ",
   "update": "ನವೀಕರಿಸಿ",
@@ -53,7 +53,7 @@
   "loadingEvents": "ಘಟನೆಗಳು ಲೋಡ್ ಆಗುತ್ತಿವೆ…",
   "couldNotLoadEvents": "ಘಟನೆಗಳನ್ನು ಲೋಡ್ ಮಾಡಲಾಗಲಿಲ್ಲ.",
   "addFarm": "ಹೊಲ ಸೇರಿಸಿ",
-  "statusSubmitted": "ಸಲ್ಲಿಸಲಾಗಿದೆ",
+  "statusSubmitted": "ವರದಿ ರಚಿಸಲಾಗಿದೆ",
   "statusVerified": "ಪರಿಶೀಲಿಸಲಾಗಿದೆ",
   "statusDraft": "ಕರಡು",
   "navHome": "ಮುಖಪುಟ",
@@ -72,5 +72,34 @@
   "unlockAt10m": "10 ಮೀ. ನಲ್ಲಿ ಅನ್‌ಲಾಕ್",
   "needlePoints": "ಸೂಜಿ ಉಪಗ್ರಹ-ಪತ್ತೆ ಹಾಟ್‌ಸ್ಪಾಟ್‌ಗೆ ತೋರಿಸುತ್ತದೆ",
   "healthy": "ಆರೋಗ್ಯಕರ",
-  "damaged": "ಹಾನಿಗೊಂಡ"
+  "damaged": "ಹಾನಿಗೊಂಡ",
+  "downloadDamageReport": "Download damage report",
+  "damageReportPdfReady": "PDF ready — use Save or Share from the preview.",
+  "couldNotBuildPdf": "Could not build PDF: {error}",
+  "@couldNotBuildPdf": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "farmNotFoundForReport": "Could not find farm for this report.",
+  "editDraftReport": "Edit draft",
+  "deleteDraftReport": "Delete draft",
+  "editDraftReportTitle": "Edit draft report",
+  "confirmDeleteDraftTitle": "Delete this draft?",
+  "confirmDeleteDraftMessage": "This will permanently remove this draft report. This cannot be undone.",
+  "reportDeleted": "Report deleted",
+  "reportGeneratedSuccess": "ವರದಿ ಯಶಸ್ವಿಯಾಗಿ ರಚಿಸಲಾಗಿದೆ",
+  "confirmDeleteSubmittedTitle": "ಈ ವರದಿಯನ್ನು ಅಳಿಸುವುದೇ?",
+  "confirmDeleteSubmittedMessage": "This will permanently remove this report and its stored data. This cannot be undone.",
+  "deleteSubmittedReport": "Delete report",
+  "couldNotDeleteDraft": "Could not delete: {error}",
+  "@couldNotDeleteDraft": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  }
 }

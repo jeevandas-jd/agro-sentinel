@@ -1,8 +1,13 @@
-import 'package:flutter/material.dart';
+import 'dart:async' show unawaited;
 
+import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
+
+import '../core/dart_define_config.dart';
 import '../models/disaster_event_model.dart';
 import '../models/farm_model.dart';
 import '../models/farmer_model.dart';
+import '../services/ai_narrative_service.dart';
 import '../theme/app_theme.dart';
 import 'dossier_submit_screen.dart';
 import '../widgets/tutorial_wrapper.dart';
@@ -25,11 +30,57 @@ class DossierReviewScreen extends StatefulWidget {
 
 class _DossierReviewScreenState extends State<DossierReviewScreen> {
   late String _farmerDescription;
+  /// Short 2-3 sentence summary shown in the preview card.
+  String? _previewNarrative;
+  /// Full report narrative sent to the PDF.
+  String? _reportNarrative;
+  bool _narrativeLoading = false;
+  bool _geminiKeyAvailable = false;
 
   @override
   void initState() {
     super.initState();
     _farmerDescription = widget.event.farmerDescription;
+    _previewNarrative = widget.event.aiNarrativeShort;
+    _reportNarrative = widget.event.aiNarrative;
+    // Avoid flashing the map-step template: we resolve the key first, then either
+    // always call Gemini (key present) or keep/show template (no key).
+    _narrativeLoading = true;
+
+    SchedulerBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      final key = await loadGeminiApiKey();
+      if (!mounted) return;
+      setState(() => _geminiKeyAvailable = key.isNotEmpty);
+
+      if (key.isNotEmpty) {
+        // Event may already carry a fallback template from HotspotMapScreen; refresh.
+        await _loadPreviewNarrative();
+      } else {
+        final missing =
+            _previewNarrative == null || _previewNarrative!.trim().isEmpty;
+        if (missing) {
+          await _loadPreviewNarrative();
+        } else if (mounted) {
+          setState(() => _narrativeLoading = false);
+        }
+      }
+    });
+  }
+
+  Future<void> _loadPreviewNarrative() async {
+    if (!mounted) return;
+    setState(() => _narrativeLoading = true);
+    final event =
+        widget.event.copyWith(farmerDescription: _farmerDescription);
+    final result =
+        await narrativeServiceWithOptionalGemini().generateNarrative(event);
+    if (!mounted) return;
+    setState(() {
+      _previewNarrative = result.preview;
+      _reportNarrative = result.report;
+      _narrativeLoading = false;
+    });
   }
 
   Future<void> _editDescription() async {
@@ -62,6 +113,7 @@ class _DossierReviewScreenState extends State<DossierReviewScreen> {
       return;
     }
     setState(() => _farmerDescription = value);
+    unawaited(_loadPreviewNarrative());
   }
 
   @override
@@ -92,6 +144,12 @@ class _DossierReviewScreenState extends State<DossierReviewScreen> {
                 Text(widget.farm.name),
                 Text('Crop: ${widget.farm.cropType}'),
                 Text('Area: ${widget.farm.areaHectares.toStringAsFixed(1)} ha'),
+                if (event.cropAgeYears != null)
+                  Text('Crop age: ${event.cropAgeYears} year(s)'),
+                if (event.isBearing != null)
+                  Text(
+                    'Bearing: ${event.isBearing! ? 'Yes (bearing)' : 'No (non-bearing)'}',
+                  ),
               ],
             ),
           ),
@@ -102,6 +160,11 @@ class _DossierReviewScreenState extends State<DossierReviewScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Type: ${event.disasterType}'),
+                if ((event.otherDisasterDetail ?? '').trim().isNotEmpty)
+                  Text(
+                    'Specified as: ${event.otherDisasterDetail!.trim()}',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
                 Text('When: ${_formatDate(event.occurredAt)}'),
               ],
             ),
@@ -139,10 +202,63 @@ class _DossierReviewScreenState extends State<DossierReviewScreen> {
           ),
           const SizedBox(height: 12),
           _SectionCard(
-            title: 'AI narrative',
-            child: Text(
-              event.aiNarrative ??
-                  'AI narrative will be generated once report is submitted.',
+            title: 'AI Summary',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (_narrativeLoading)
+                  const LinearProgressIndicator()
+                else
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 12,
+                      horizontal: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .surfaceContainerHighest
+                          .withValues(alpha: 0.35),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: SelectableText(
+                      _previewNarrative ??
+                          event.aiNarrativeShort ??
+                          event.aiNarrative ??
+                          'Summary not available.',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            height: 1.55,
+                            fontSize: 15,
+                          ),
+                    ),
+                  ),
+                if (!_narrativeLoading) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    'Full assessment report will be included in the PDF.',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                  ),
+                  const SizedBox(height: 4),
+                  if (!_geminiKeyAvailable)
+                    Text(
+                      'Template summary only. Add GEMINI_API_KEY to '
+                      'android/local.properties and rebuild the app.',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                    ),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton(
+                      onPressed: () => unawaited(_loadPreviewNarrative()),
+                      child: const Text('Regenerate'),
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
           const SizedBox(height: 12),
@@ -163,8 +279,20 @@ class _DossierReviewScreenState extends State<DossierReviewScreen> {
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () {
+              // Pass the full report narrative to the PDF; fall back through
+              // short preview → persisted aiNarrative if report not yet loaded.
+              final narrativeForPdf = _reportNarrative?.isNotEmpty == true
+                  ? _reportNarrative!
+                  : (_previewNarrative ?? event.aiNarrative ?? '');
               Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const DossierSubmitScreen()),
+                MaterialPageRoute(
+                  builder: (_) => DossierSubmitScreen(
+                    farm: widget.farm,
+                    farmer: widget.farmer,
+                    event: event,
+                    narrativeText: narrativeForPdf,
+                  ),
+                ),
               );
             },
             child: const Text('Generate PDF Report'),
