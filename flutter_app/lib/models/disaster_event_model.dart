@@ -12,7 +12,19 @@ class DisasterEventModel {
   final String status;
   final List<HotspotModel> hotspots;
   final String? aiNarrative;
+  /// Short 2-3 sentence executive summary shown on the Damage Report Preview screen.
+  /// Stored as [ai_narrative_short] in Firestore. Populated from the same Gemini call
+  /// that produces [aiNarrative].
+  final String? aiNarrativeShort;
   final int totalTreesLost;
+
+  /// Age of the crop in years at the time the disaster was reported.
+  /// Stored as [crop_age_years] in Firestore. Null when not provided.
+  final int? cropAgeYears;
+
+  /// Whether the crop was in a bearing (fruit/yield-producing) stage at the time
+  /// of the incident. Stored as [is_bearing] in Firestore. Null when not provided.
+  final bool? isBearing;
   final double estimatedLossInr;
 
   // ── NEW: populated by ReportService before generating the dossier ─────────
@@ -42,8 +54,11 @@ class DisasterEventModel {
     required this.status,
     required this.hotspots,
     this.aiNarrative,
+    this.aiNarrativeShort,
     required this.totalTreesLost,
     required this.estimatedLossInr,
+    this.cropAgeYears,
+    this.isBearing,
     // new — all optional
     this.damageScore = 0.0,
     this.confidence = 0.0,
@@ -72,9 +87,12 @@ class DisasterEventModel {
     String? status,
     List<HotspotModel>? hotspots,
     String? aiNarrative,
+    String? aiNarrativeShort,
     int? totalTreesLost,
     double? estimatedLossInr,
-    // new
+    int? cropAgeYears,
+    bool? isBearing,
+    // new runtime fields
     double? damageScore,
     double? confidence,
     double? destroyedAreaM2,
@@ -97,8 +115,11 @@ class DisasterEventModel {
       status: status ?? this.status,
       hotspots: hotspots ?? this.hotspots,
       aiNarrative: aiNarrative ?? this.aiNarrative,
+      aiNarrativeShort: aiNarrativeShort ?? this.aiNarrativeShort,
       totalTreesLost: totalTreesLost ?? this.totalTreesLost,
       estimatedLossInr: estimatedLossInr ?? this.estimatedLossInr,
+      cropAgeYears: cropAgeYears ?? this.cropAgeYears,
+      isBearing: isBearing ?? this.isBearing,
       damageScore: damageScore ?? this.damageScore,
       confidence: confidence ?? this.confidence,
       destroyedAreaM2: destroyedAreaM2 ?? this.destroyedAreaM2,
@@ -138,9 +159,12 @@ class DisasterEventModel {
       status: (data['status'] as String?) ?? 'draft',
       hotspots: hotspotList,
       aiNarrative: data['ai_narrative'] as String?,
+      aiNarrativeShort: data['ai_narrative_short'] as String?,
       totalTreesLost: _asInt(data['total_trees_lost']),
       estimatedLossInr: _asDouble(data['estimated_loss_inr']),
-      // new fields intentionally omitted — they are never read from Firestore
+      cropAgeYears: data['crop_age_years'] as int?,
+      isBearing: data['is_bearing'] as bool?,
+      // runtime service fields intentionally omitted — never read from Firestore
     );
   }
 
@@ -155,9 +179,12 @@ class DisasterEventModel {
       'status': status,
       'hotspots': hotspots.map((h) => h.toMap()).toList(),
       'ai_narrative': aiNarrative,
+      'ai_narrative_short': aiNarrativeShort,
       'total_trees_lost': totalTreesLost,
       'estimated_loss_inr': estimatedLossInr,
-      // new runtime fields deliberately NOT written to Firestore
+      if (cropAgeYears != null) 'crop_age_years': cropAgeYears,
+      if (isBearing != null) 'is_bearing': isBearing,
+      // runtime service fields deliberately NOT written to Firestore
     };
   }
 

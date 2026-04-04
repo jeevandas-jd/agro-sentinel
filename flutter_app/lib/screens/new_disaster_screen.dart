@@ -34,8 +34,10 @@ class _NewDisasterScreenState extends State<NewDisasterScreen> {
   final _eventService = DisasterEventService();
   final _voiceService = VoiceToTextService();
   final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _cropAgeController = TextEditingController();
   String? _selectedType;
   DateTime _occurredAt = DateTime.now();
+  bool? _isBearing;
   bool _saving = false;
   bool _listening = false;
   String _lastFinalVoiceText = '';
@@ -44,6 +46,7 @@ class _NewDisasterScreenState extends State<NewDisasterScreen> {
   void dispose() {
     _voiceService.dispose();
     _descriptionController.dispose();
+    _cropAgeController.dispose();
     super.dispose();
   }
 
@@ -125,6 +128,8 @@ class _NewDisasterScreenState extends State<NewDisasterScreen> {
     }
     if (_saving) return;
     setState(() => _saving = true);
+    final cropAgeRaw = _cropAgeController.text.trim();
+    final cropAge = cropAgeRaw.isEmpty ? null : int.tryParse(cropAgeRaw);
     final event = DisasterEventModel(
       id: 'evt-${DateTime.now().millisecondsSinceEpoch}',
       farmerUid: widget.farmer.uid,
@@ -138,6 +143,8 @@ class _NewDisasterScreenState extends State<NewDisasterScreen> {
       aiNarrative: null,
       totalTreesLost: 0,
       estimatedLossInr: 0,
+      cropAgeYears: cropAge,
+      isBearing: _isBearing,
     );
 
     try {
@@ -231,6 +238,59 @@ class _NewDisasterScreenState extends State<NewDisasterScreen> {
                     alignment: Alignment.centerRight,
                     child: Text('${description.length} characters'),
                   ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Crop details',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _cropAgeController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Age of crop (years)',
+                      hintText: 'e.g. 5',
+                      prefixIcon: Icon(Icons.calendar_month_outlined),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Is the crop in bearing stage?',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      _BearingChip(
+                        label: 'Bearing',
+                        selected: _isBearing == true,
+                        onTap: () => setState(
+                          () => _isBearing =
+                              _isBearing == true ? null : true,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      _BearingChip(
+                        label: 'Non-bearing',
+                        selected: _isBearing == false,
+                        onTap: () => setState(
+                          () => _isBearing =
+                              _isBearing == false ? null : false,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (_isBearing == null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        'Tap one to select (optional)',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context).colorScheme.outline,
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -263,5 +323,58 @@ class _NewDisasterScreenState extends State<NewDisasterScreen> {
     final hh = dt.hour.toString().padLeft(2, '0');
     final min = dt.minute.toString().padLeft(2, '0');
     return '$dd/$mm/${dt.year} $hh:$min';
+  }
+}
+
+class _BearingChip extends StatelessWidget {
+  const _BearingChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: selected ? scheme.primaryContainer : scheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(
+            color: selected ? scheme.primary : scheme.outlineVariant,
+            width: selected ? 1.5 : 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (selected)
+              Padding(
+                padding: const EdgeInsets.only(right: 6),
+                child: Icon(
+                  Icons.check_circle_rounded,
+                  size: 16,
+                  color: scheme.primary,
+                ),
+              ),
+            Text(
+              label,
+              style: TextStyle(
+                fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+                color: selected ? scheme.onPrimaryContainer : scheme.onSurface,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

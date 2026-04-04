@@ -84,13 +84,19 @@ class DamagePreviewPdfService {
   static pw.Widget _table(List<List<String>> rows) {
     return pw.Table(
       border: pw.TableBorder.all(color: PdfColors.grey200, width: 0.5),
-      columnWidths: const {0: pw.FlexColumnWidth(2.1), 1: pw.FlexColumnWidth(2.9)},
+      columnWidths: const {
+        0: pw.FlexColumnWidth(2.1),
+        1: pw.FlexColumnWidth(2.9),
+      },
       children: rows.map((row) {
         return pw.TableRow(
           children: [
             pw.Container(
               color: PdfColors.grey100,
-              padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              padding: const pw.EdgeInsets.symmetric(
+                horizontal: 10,
+                vertical: 6,
+              ),
               child: pw.Text(
                 row[0],
                 style: pw.TextStyle(
@@ -101,7 +107,10 @@ class DamagePreviewPdfService {
               ),
             ),
             pw.Container(
-              padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              padding: const pw.EdgeInsets.symmetric(
+                horizontal: 10,
+                vertical: 6,
+              ),
               child: pw.Text(
                 row[1],
                 style: const pw.TextStyle(fontSize: 9, color: PdfColors.black),
@@ -202,11 +211,8 @@ class DamagePreviewPdfService {
       captured = await _loadImageRef(event.capturedImagePath);
     }
 
-    final hotspotVisuals = <({
-      HotspotModel h,
-      pw.MemoryImage? photo,
-      pw.MemoryImage? gradcam,
-    })>[];
+    final hotspotVisuals =
+        <({HotspotModel h, pw.MemoryImage? photo, pw.MemoryImage? gradcam})>[];
     for (final h in event.hotspots) {
       final photo = await _loadImageRef(h.photoUrl);
       final gradcam = await _loadImageRef(h.gradcamUrl);
@@ -217,8 +223,7 @@ class DamagePreviewPdfService {
     final damaged = hotspots
         .where((h) => (h.aiResult ?? '').toUpperCase() == 'DAMAGED')
         .length;
-    final treesLost =
-        hotspots.fold<int>(0, (sum, h) => sum + h.treesLost);
+    final treesLost = hotspots.fold<int>(0, (sum, h) => sum + h.treesLost);
     final estimatedLoss = treesLost * 2500;
     final narrative = narrativeText.trim().isEmpty
         ? (event.aiNarrative ?? 'Narrative not available.')
@@ -275,6 +280,16 @@ class DamagePreviewPdfService {
         ['Survey number', farm.surveyNumber],
         ['Crop', farm.cropType],
         ['Area', '${farm.areaHectares.toStringAsFixed(1)} ha'],
+        [
+          'Crop age',
+          event.cropAgeYears != null ? '${event.cropAgeYears} year(s)' : '—',
+        ],
+        [
+          'Bearing stage',
+          event.isBearing == null
+              ? '—'
+              : (event.isBearing! ? 'Yes (bearing)' : 'No (non-bearing)'),
+        ],
         ['Farm ID', farm.id],
       ]),
       pw.SizedBox(height: 12),
@@ -307,7 +322,10 @@ class DamagePreviewPdfService {
         ],
         if (event.satelliteGroqError.isNotEmpty)
           ['Groq error', event.satelliteGroqError],
-        ['Summary', event.satelliteSummary.isEmpty ? '—' : event.satelliteSummary],
+        [
+          'Summary',
+          event.satelliteSummary.isEmpty ? '—' : event.satelliteSummary,
+        ],
       ]),
       pw.SizedBox(height: 10),
       if (beforeImg != null && afterImg != null) ...[
@@ -328,7 +346,11 @@ class DamagePreviewPdfService {
                   ),
                   pw.SizedBox(height: 4),
                   pw.Center(
-                    child: pw.Image(beforeImg, height: 130, fit: pw.BoxFit.contain),
+                    child: pw.Image(
+                      beforeImg,
+                      height: 130,
+                      fit: pw.BoxFit.contain,
+                    ),
                   ),
                 ],
               ),
@@ -348,7 +370,11 @@ class DamagePreviewPdfService {
                   ),
                   pw.SizedBox(height: 4),
                   pw.Center(
-                    child: pw.Image(afterImg, height: 130, fit: pw.BoxFit.contain),
+                    child: pw.Image(
+                      afterImg,
+                      height: 130,
+                      fit: pw.BoxFit.contain,
+                    ),
                   ),
                 ],
               ),
@@ -381,7 +407,7 @@ class DamagePreviewPdfService {
         ['Estimated loss', '₹$estimatedLoss'],
       ]),
       pw.SizedBox(height: 12),
-      _section('AI NARRATIVE'),
+      _section('AI ASSESSMENT REPORT'),
       _bodyText(narrative),
       pw.SizedBox(height: 12),
       _section('FARMER DESCRIPTION / STATEMENT'),

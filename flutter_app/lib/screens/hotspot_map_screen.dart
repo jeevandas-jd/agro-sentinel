@@ -186,12 +186,15 @@ class _HotspotMapScreenState extends State<HotspotMapScreen> {
     }
 
     // Generate a data-driven narrative from actual analysis results.
-    final narrative =
+    final narrativeResult =
         await narrativeServiceWithOptionalGemini().generateNarrative(eventWithResults);
 
     if (!mounted) return;
 
-    final event = eventWithResults.copyWith(aiNarrative: narrative);
+    final event = eventWithResults.copyWith(
+      aiNarrative: narrativeResult.report,
+      aiNarrativeShort: narrativeResult.preview,
+    );
 
     try {
       await _eventService.saveEvent(event);

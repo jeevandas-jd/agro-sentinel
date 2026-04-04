@@ -125,11 +125,11 @@ class ReportService {
         return GeminiNarrativeClient.complete(apiKey: key, prompt: prompt);
       },
     );
-    final narrative = await narrativeService.generateNarrative(enrichedEvent);
+    final narrativeResult = await narrativeService.generateNarrative(enrichedEvent);
 
     // ── 4. Return fully structured ReportContent for the PDF renderer ─────────
     return ReportContent(
-      narrative: narrative,
+      narrative: narrativeResult.report,
       farmId: enrichedEvent.farmId,
       farmerUid: enrichedEvent.farmerUid,
       disasterType: enrichedEvent.disasterType,

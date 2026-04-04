@@ -47,8 +47,8 @@ class GeminiNarrativeClient {
               ],
               'generationConfig': {
                 'temperature': 0.2,
-                // Long dossier copy (TFLite + Groq JSON context); avoid mid-sentence cutoffs.
-                'maxOutputTokens': 2048,
+                // Two-section JSON response (preview + full report); needs extra headroom.
+                'maxOutputTokens': 3000,
               },
             }),
           )
