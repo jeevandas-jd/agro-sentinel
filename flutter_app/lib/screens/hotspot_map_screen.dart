@@ -12,8 +12,8 @@ import '../services/disaster_event_service.dart';
 import '../services/satellite_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/tutorial_wrapper.dart';
-import 'camera_capture_screen.dart';
 import 'dossier_review_screen.dart';
+import 'truth_walk_screen.dart';
 
 class HotspotMapScreen extends StatefulWidget {
   final FarmModel farm;
@@ -128,7 +128,7 @@ class _HotspotMapScreenState extends State<HotspotMapScreen> {
   Future<void> _openCapture(HotspotModel hotspot) async {
     final updated = await Navigator.of(context).push<HotspotModel>(
       MaterialPageRoute(
-        builder: (_) => CameraCaptureScreen(hotspot: hotspot),
+        builder: (_) => TruthWalkScreen(hotspot: hotspot),
       ),
     );
     if (!mounted || updated == null) {
