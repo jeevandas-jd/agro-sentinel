@@ -37,6 +37,9 @@ class _HotspotMapScreenState extends State<HotspotMapScreen> {
   gmaps.BitmapDescriptor? _hotspotIcon;
   gmaps.BitmapDescriptor? _visitedHotspotIcon;
   bool _generating = false;
+  bool _captureInProgress = false;
+
+  bool get _blockHotspotEdits => _generating || _captureInProgress;
 
   @override
   void initState() {
@@ -76,6 +79,7 @@ class _HotspotMapScreenState extends State<HotspotMapScreen> {
   }
 
   Future<void> _confirmAndAddHotspot(gmaps.LatLng pos) async {
+    if (_blockHotspotEdits) return;
     final shouldAdd = await showDialog<bool>(
       context: context,
       builder: (context) {
@@ -104,6 +108,7 @@ class _HotspotMapScreenState extends State<HotspotMapScreen> {
   }
 
   Future<void> _useGps() async {
+    if (_blockHotspotEdits) return;
     LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied ||
         permission == LocationPermission.deniedForever) {
@@ -126,19 +131,26 @@ class _HotspotMapScreenState extends State<HotspotMapScreen> {
   }
 
   Future<void> _openCapture(HotspotModel hotspot) async {
-    final updated = await Navigator.of(context).push<HotspotModel>(
-      MaterialPageRoute(
-        builder: (_) => TruthWalkScreen(hotspot: hotspot),
-      ),
-    );
-    if (!mounted || updated == null) {
-      return;
+    setState(() => _captureInProgress = true);
+    try {
+      final updated = await Navigator.of(context).push<HotspotModel>(
+        MaterialPageRoute(
+          builder: (_) => TruthWalkScreen(hotspot: hotspot),
+        ),
+      );
+      if (!mounted || updated == null) {
+        return;
+      }
+      setState(() {
+        _hotspots = _hotspots
+            .map((item) => item.id == updated.id ? updated : item)
+            .toList();
+      });
+    } finally {
+      if (mounted) {
+        setState(() => _captureInProgress = false);
+      }
     }
-    setState(() {
-      _hotspots = _hotspots
-          .map((item) => item.id == updated.id ? updated : item)
-          .toList();
-    });
   }
 
   Future<void> _finish() async {
@@ -258,17 +270,20 @@ class _HotspotMapScreenState extends State<HotspotMapScreen> {
         body: Stack(
           children: [
           Positioned.fill(
-            child: gmaps.GoogleMap(
-              initialCameraPosition: gmaps.CameraPosition(
-                target: gmaps.LatLng(widget.farm.center.latitude, widget.farm.center.longitude),
-                zoom: 16,
+            child: IgnorePointer(
+              ignoring: _blockHotspotEdits,
+              child: gmaps.GoogleMap(
+                initialCameraPosition: gmaps.CameraPosition(
+                  target: gmaps.LatLng(widget.farm.center.latitude, widget.farm.center.longitude),
+                  zoom: 16,
+                ),
+                mapType: gmaps.MapType.satellite,
+                myLocationEnabled: true,
+                myLocationButtonEnabled: false,
+                onLongPress: _blockHotspotEdits ? null : _confirmAndAddHotspot,
+                markers: markers,
+                polygons: farmPolygon != null ? {farmPolygon} : const {},
               ),
-              mapType: gmaps.MapType.satellite,
-              myLocationEnabled: true,
-              myLocationButtonEnabled: false,
-              onLongPress: _confirmAndAddHotspot,
-              markers: markers,
-              polygons: farmPolygon != null ? {farmPolygon} : const {},
             ),
           ),
           Positioned(
@@ -316,14 +331,16 @@ class _HotspotMapScreenState extends State<HotspotMapScreen> {
                       children: [
                         Expanded(
                           child: OutlinedButton(
-                            onPressed: _hotspots.isEmpty ? null : () => setState(() => _hotspots = []),
+                            onPressed: (_hotspots.isEmpty || _blockHotspotEdits)
+                                ? null
+                                : () => setState(() => _hotspots = []),
                             child: const Text('Clear Hotspots'),
                           ),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: _useGps,
+                            onPressed: _blockHotspotEdits ? null : _useGps,
                             child: const Text('Use My GPS Location'),
                           ),
                         ),
@@ -346,7 +363,9 @@ class _HotspotMapScreenState extends State<HotspotMapScreen> {
                             ? 'Photo taken and AI analysed'
                             : 'Photo not taken yet'),
                         trailing: const Icon(Icons.camera_alt_outlined),
-                        onTap: () => _openCapture(hotspot),
+                        onTap: _blockHotspotEdits
+                            ? null
+                            : () => _openCapture(hotspot),
                       );
                     }),
                     const SizedBox(height: 10),
