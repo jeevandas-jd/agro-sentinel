@@ -27,16 +27,16 @@ class DisasterEventModel {
   final bool? isBearing;
   final double estimatedLossInr;
 
-  // ── NEW: populated by ReportService before generating the dossier ─────────
-  // All optional with safe defaults so existing code compiles unchanged.
+  // ── Satellite / camera metrics (persisted for PDF redownload) ─────────────
   final double damageScore; // SatelliteService → 'damage_score'
   final double confidence; // InferenceService → 'confidence'
   final double destroyedAreaM2; // SatelliteService → 'destroyed_area_m2'
   final double affectedAreaHa; // SatelliteService → 'affected_area_ha'
   final String satelliteSummary; // SatelliteService → 'summary'
-  final String? capturedImagePath; // on-device photo from CameraScreen
+  /// Durable on-device path (app documents) after media files are copied before save.
+  final String? capturedImagePath;
 
-  /// Runtime-only: Groq vision (satellite before/after) — not read from Firestore.
+  /// Groq vision (satellite before/after); persisted for PDF redownload.
   final bool satelliteGroqOk;
   final String satelliteGroqError;
   final double satelliteGroqConfidence; // 0–1 from Groq JSON, not TFLite
@@ -135,8 +135,6 @@ class DisasterEventModel {
     );
   }
 
-  // fromFirestore / toFirestore are UNCHANGED — new fields are runtime-only,
-  // not persisted (they come from live service calls, not Firestore docs).
   factory DisasterEventModel.fromFirestore(
     DocumentSnapshot<Map<String, dynamic>> doc,
   ) {
@@ -164,7 +162,17 @@ class DisasterEventModel {
       estimatedLossInr: _asDouble(data['estimated_loss_inr']),
       cropAgeYears: data['crop_age_years'] as int?,
       isBearing: data['is_bearing'] as bool?,
-      // runtime service fields intentionally omitted — never read from Firestore
+      damageScore: _asDouble(data['damage_score']),
+      confidence: _asDouble(data['confidence']),
+      destroyedAreaM2: _asDouble(data['destroyed_area_m2']),
+      affectedAreaHa: _asDouble(data['affected_area_ha']),
+      satelliteSummary: (data['satellite_summary'] as String?) ?? '',
+      capturedImagePath: data['captured_image_path'] as String?,
+      satelliteGroqOk: data['satellite_groq_ok'] as bool? ?? false,
+      satelliteGroqError: (data['satellite_groq_error'] as String?) ?? '',
+      satelliteGroqConfidence: _asDouble(data['satellite_groq_confidence']),
+      satelliteGroqDetailsJson:
+          (data['satellite_groq_details_json'] as String?) ?? '',
     );
   }
 
@@ -184,7 +192,17 @@ class DisasterEventModel {
       'estimated_loss_inr': estimatedLossInr,
       if (cropAgeYears != null) 'crop_age_years': cropAgeYears,
       if (isBearing != null) 'is_bearing': isBearing,
-      // runtime service fields deliberately NOT written to Firestore
+      'damage_score': damageScore,
+      'confidence': confidence,
+      'destroyed_area_m2': destroyedAreaM2,
+      'affected_area_ha': affectedAreaHa,
+      'satellite_summary': satelliteSummary,
+      'satellite_groq_ok': satelliteGroqOk,
+      'satellite_groq_error': satelliteGroqError,
+      'satellite_groq_confidence': satelliteGroqConfidence,
+      'satellite_groq_details_json': satelliteGroqDetailsJson,
+      if ((capturedImagePath ?? '').isNotEmpty)
+        'captured_image_path': capturedImagePath,
     };
   }
 

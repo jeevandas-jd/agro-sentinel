@@ -8,8 +8,10 @@ import '../widgets/language_picker_sheet.dart';
 import '../models/disaster_event_model.dart';
 import '../models/farm_model.dart';
 import '../models/farmer_model.dart';
+import '../services/damage_preview_pdf_service.dart';
 import '../services/disaster_event_service.dart';
 import '../services/farm_service.dart';
+import '../services/report_media_storage.dart';
 import '../services/tutorial_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/tutorial_wrapper.dart';
@@ -42,6 +44,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   StreamSubscription<List<FarmModel>>? _farmsSub;
   StreamSubscription<List<DisasterEventModel>>? _eventsSub;
+
+  /// When set, PDF is being built for the event with this id.
+  String? _pdfLoadingEventId;
+
+  /// When set, a draft delete is in progress for this event id.
+  String? _deletingEventId;
 
   @override
   void initState() {
@@ -126,6 +134,137 @@ class _HomeScreenState extends State<HomeScreen> {
         builder: (_) => NewDisasterScreen(farmer: widget.farmer, farm: farm),
       ),
     );
+  }
+
+  FarmModel? _farmForEvent(DisasterEventModel event) {
+    final farms = _farms;
+    if (farms == null) return null;
+    for (final f in farms) {
+      if (f.id == event.farmId) return f;
+    }
+    return null;
+  }
+
+  void _editDraft(DisasterEventModel event) {
+    final farm = _farmForEvent(event);
+    final l10n = AppLocalizations.of(context);
+    if (farm == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.farmNotFoundForReport)),
+      );
+      return;
+    }
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => NewDisasterScreen(
+          farmer: widget.farmer,
+          farm: farm,
+          existingDraft: event,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _confirmDeleteEvent(
+    DisasterEventModel event, {
+    required bool isDraft,
+  }) async {
+    final l10n = AppLocalizations.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(
+          isDraft
+              ? l10n.confirmDeleteDraftTitle
+              : l10n.confirmDeleteSubmittedTitle,
+        ),
+        content: Text(
+          isDraft
+              ? l10n.confirmDeleteDraftMessage
+              : l10n.confirmDeleteSubmittedMessage,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.alertHigh),
+            child: Text(l10n.delete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    setState(() => _deletingEventId = event.id);
+    try {
+      await _eventService.deleteEvent(event.id);
+      await ReportMediaStorage.deleteMediaForEvent(event.id);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.reportDeleted)),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.couldNotDeleteDraft(e.toString())),
+          backgroundColor: AppColors.alertHigh,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _deletingEventId = null);
+    }
+  }
+
+  Future<void> _downloadDamageReport(DisasterEventModel event) async {
+    final l10n = AppLocalizations.of(context);
+    final farms = _farms;
+    if (farms == null || farms.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.farmNotFoundForReport)),
+      );
+      return;
+    }
+    FarmModel? farm;
+    for (final f in farms) {
+      if (f.id == event.farmId) {
+        farm = f;
+        break;
+      }
+    }
+    if (farm == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.farmNotFoundForReport)),
+      );
+      return;
+    }
+    if (_pdfLoadingEventId != null) return;
+    setState(() => _pdfLoadingEventId = event.id);
+    try {
+      await DamagePreviewPdfService.printDamageReport(
+        farm: farm,
+        farmer: widget.farmer,
+        event: event,
+        narrativeText: event.aiNarrative ?? '',
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.damageReportPdfReady)),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.couldNotBuildPdf(e.toString())),
+          backgroundColor: AppColors.alertHigh,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _pdfLoadingEventId = null);
+    }
   }
 
   void _showFarmPickerSheet() {
@@ -388,6 +527,9 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     return Column(
       children: _events!.map((event) {
+        final pdfBusy = _pdfLoadingEventId == event.id;
+        final isDraft = event.status.toLowerCase() == 'draft';
+        final deleteBusy = _deletingEventId == event.id;
         return Card(
           margin: const EdgeInsets.only(bottom: 10),
           child: ListTile(
@@ -399,7 +541,63 @@ class _HomeScreenState extends State<HomeScreen> {
             subtitle: Text(
               '${_formatDate(event.occurredAt)} · ${event.farmId.isEmpty ? '' : 'Farm'}',
             ),
-            trailing: _StatusBadge(status: event.status),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (isDraft) ...[
+                  IconButton(
+                    icon: const Icon(Icons.edit_outlined),
+                    tooltip: l10n.editDraftReport,
+                    onPressed: deleteBusy || _deletingEventId != null
+                        ? null
+                        : () => _editDraft(event),
+                  ),
+                  IconButton(
+                    icon: deleteBusy
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.delete_outline),
+                    tooltip: l10n.deleteDraftReport,
+                    onPressed: deleteBusy || _deletingEventId != null
+                        ? null
+                        : () => _confirmDeleteEvent(event, isDraft: true),
+                  ),
+                ] else ...[
+                  IconButton(
+                    icon: pdfBusy
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.picture_as_pdf_outlined),
+                    tooltip: l10n.downloadDamageReport,
+                    onPressed: pdfBusy ||
+                            _pdfLoadingEventId != null ||
+                            _deletingEventId != null
+                        ? null
+                        : () => _downloadDamageReport(event),
+                  ),
+                  IconButton(
+                    icon: deleteBusy
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.delete_outline),
+                    tooltip: l10n.deleteSubmittedReport,
+                    onPressed: deleteBusy || _deletingEventId != null
+                        ? null
+                        : () => _confirmDeleteEvent(event, isDraft: false),
+                  ),
+                ],
+                _StatusBadge(status: event.status),
+              ],
+            ),
           ),
         );
       }).toList(),

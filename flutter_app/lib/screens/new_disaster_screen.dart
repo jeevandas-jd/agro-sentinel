@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:agrisentinel/l10n/app_localizations.dart';
 
 import '../models/disaster_event_model.dart';
 import '../models/farm_model.dart';
@@ -13,11 +14,14 @@ import 'dart:math' as math;
 class NewDisasterScreen extends StatefulWidget {
   final FarmerModel farmer;
   final FarmModel farm;
+  /// When set, form is pre-filled and save updates this draft (same id, hotspots kept).
+  final DisasterEventModel? existingDraft;
 
   const NewDisasterScreen({
     super.key,
     required this.farmer,
     required this.farm,
+    this.existingDraft,
   });
 
   @override
@@ -25,13 +29,21 @@ class NewDisasterScreen extends StatefulWidget {
 }
 
 class _NewDisasterScreenState extends State<NewDisasterScreen> {
-  static const _types = <String>[
+  static const _baseTypes = <String>[
     'Wildlife Attack',
     'Flood',
     'Storm/Wind',
     'Drought',
     'Other',
   ];
+
+  List<String> get _disasterTypeOptions {
+    final t = widget.existingDraft?.disasterType;
+    if (t != null && t.isNotEmpty && !_baseTypes.contains(t)) {
+      return [..._baseTypes, t];
+    }
+    return _baseTypes;
+  }
 
   final _eventService = DisasterEventService();
   final _voiceService = VoiceToTextService();
@@ -43,6 +55,22 @@ class _NewDisasterScreenState extends State<NewDisasterScreen> {
   bool _saving = false;
   bool _listening = false;
   String _lastFinalVoiceText = '';
+
+  @override
+  void initState() {
+    super.initState();
+    final d = widget.existingDraft;
+    if (d != null) {
+      _descriptionController.text = d.farmerDescription;
+      if (d.cropAgeYears != null) {
+        _cropAgeController.text = d.cropAgeYears.toString();
+      }
+      _selectedType =
+          d.disasterType.isNotEmpty ? d.disasterType : null;
+      _occurredAt = d.occurredAt;
+      _isBearing = d.isBearing;
+    }
+  }
 
   @override
   void dispose() {
@@ -144,22 +172,36 @@ class _NewDisasterScreenState extends State<NewDisasterScreen> {
     setState(() => _saving = true);
     final cropAgeRaw = _cropAgeController.text.trim();
     final cropAge = cropAgeRaw.isEmpty ? null : int.tryParse(cropAgeRaw);
-    final event = DisasterEventModel(
-      id: 'evt-${DateTime.now().millisecondsSinceEpoch}',
-      farmerUid: widget.farmer.uid,
-      farmId: widget.farm.id,
-      disasterType: _selectedType!,
-      farmerDescription: description,
-      occurredAt: _occurredAt,
-      reportedAt: DateTime.now(),
-      status: 'draft',
-      hotspots: const [],
-      aiNarrative: null,
-      totalTreesLost: 0,
-      estimatedLossInr: 0,
-      cropAgeYears: cropAge,
-      isBearing: _isBearing,
-    );
+    final existing = widget.existingDraft;
+    final DisasterEventModel event;
+    if (existing != null) {
+      event = existing.copyWith(
+        disasterType: _selectedType!,
+        farmerDescription: description,
+        occurredAt: _occurredAt,
+        reportedAt: DateTime.now(),
+        status: 'draft',
+        cropAgeYears: cropAge,
+        isBearing: _isBearing,
+      );
+    } else {
+      event = DisasterEventModel(
+        id: 'evt-${DateTime.now().millisecondsSinceEpoch}',
+        farmerUid: widget.farmer.uid,
+        farmId: widget.farm.id,
+        disasterType: _selectedType!,
+        farmerDescription: description,
+        occurredAt: _occurredAt,
+        reportedAt: DateTime.now(),
+        status: 'draft',
+        hotspots: const [],
+        aiNarrative: null,
+        totalTreesLost: 0,
+        estimatedLossInr: 0,
+        cropAgeYears: cropAge,
+        isBearing: _isBearing,
+      );
+    }
 
     try {
       final savedId = await _eventService.saveEvent(event);
@@ -189,7 +231,13 @@ class _NewDisasterScreenState extends State<NewDisasterScreen> {
     return TutorialWrapper(
       screenKey: 'new_disaster',
       child: Scaffold(
-        appBar: AppBar(title: const Text('Report Damage')),
+        appBar: AppBar(
+          title: Text(
+            widget.existingDraft == null
+                ? 'Report Damage'
+                : AppLocalizations.of(context).editDraftReportTitle,
+          ),
+        ),
         body: SafeArea(
           child: Column(
             children: [
@@ -205,7 +253,7 @@ class _NewDisasterScreenState extends State<NewDisasterScreen> {
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
-                        children: _types.map((type) {
+                        children: _disasterTypeOptions.map((type) {
                           final selected = _selectedType == type;
                           return Padding(
                             padding: const EdgeInsets.only(right: 8),

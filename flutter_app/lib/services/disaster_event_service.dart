@@ -39,4 +39,9 @@ class DisasterEventService {
       return event.id;
     }
   }
+
+  /// Permanently removes the disaster event document.
+  Future<void> deleteEvent(String eventId) async {
+    await _firestore.collection(_collection).doc(eventId).delete();
+  }
 }

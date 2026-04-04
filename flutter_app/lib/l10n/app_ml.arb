@@ -72,5 +72,33 @@
   "unlockAt10m": "10 മീ-ൽ അൺലോക്ക്",
   "needlePoints": "സൂചി ഉപഗ്രഹം കണ്ടെത്തിയ ഹോട്ട്‌സ്‌പോട്ടിലേക്ക് ചൂണ്ടുന്നു",
   "healthy": "ആരോഗ്യകരം",
-  "damaged": "കേടുപ്പെട്ടത്"
+  "damaged": "കേടുപ്പെട്ടത്",
+  "downloadDamageReport": "Download damage report",
+  "damageReportPdfReady": "PDF ready — use Save or Share from the preview.",
+  "couldNotBuildPdf": "Could not build PDF: {error}",
+  "@couldNotBuildPdf": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "farmNotFoundForReport": "Could not find farm for this report.",
+  "editDraftReport": "Edit draft",
+  "deleteDraftReport": "Delete draft",
+  "editDraftReportTitle": "Edit draft report",
+  "confirmDeleteDraftTitle": "Delete this draft?",
+  "confirmDeleteDraftMessage": "This will permanently remove this draft report. This cannot be undone.",
+  "reportDeleted": "Report deleted",
+  "confirmDeleteSubmittedTitle": "Delete this submitted report?",
+  "confirmDeleteSubmittedMessage": "This will permanently remove this report and its stored data. This cannot be undone.",
+  "deleteSubmittedReport": "Delete report",
+  "couldNotDeleteDraft": "Could not delete: {error}",
+  "@couldNotDeleteDraft": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  }
 }

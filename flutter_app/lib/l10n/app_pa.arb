@@ -72,5 +72,33 @@
   "unlockAt10m": "10 ਮੀ. 'ਤੇ ਅਨਲੌਕ",
   "needlePoints": "ਸੂਈ ਸੈਟੇਲਾਈਟ ਤੋਂ ਖੋਜੇ ਹਾਟਸਪਾਟ ਵੱਲ ਇਸ਼ਾਰਾ ਕਰਦੀ ਹੈ",
   "healthy": "ਸਿਹਤਮੰਦ",
-  "damaged": "ਨੁਕਸਾਨਿਆ"
+  "damaged": "ਨੁਕਸਾਨਿਆ",
+  "downloadDamageReport": "Download damage report",
+  "damageReportPdfReady": "PDF ready — use Save or Share from the preview.",
+  "couldNotBuildPdf": "Could not build PDF: {error}",
+  "@couldNotBuildPdf": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "farmNotFoundForReport": "Could not find farm for this report.",
+  "editDraftReport": "Edit draft",
+  "deleteDraftReport": "Delete draft",
+  "editDraftReportTitle": "Edit draft report",
+  "confirmDeleteDraftTitle": "Delete this draft?",
+  "confirmDeleteDraftMessage": "This will permanently remove this draft report. This cannot be undone.",
+  "reportDeleted": "Report deleted",
+  "confirmDeleteSubmittedTitle": "Delete this submitted report?",
+  "confirmDeleteSubmittedMessage": "This will permanently remove this report and its stored data. This cannot be undone.",
+  "deleteSubmittedReport": "Delete report",
+  "couldNotDeleteDraft": "Could not delete: {error}",
+  "@couldNotDeleteDraft": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -9,6 +9,7 @@ import '../models/farmer_model.dart';
 import '../models/hotspot_model.dart';
 import '../services/ai_narrative_service.dart';
 import '../services/disaster_event_service.dart';
+import '../services/report_media_storage.dart';
 import '../services/satellite_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/tutorial_wrapper.dart';
@@ -209,7 +210,8 @@ class _HotspotMapScreenState extends State<HotspotMapScreen> {
     );
 
     try {
-      await _eventService.saveEvent(event);
+      final persisted = await ReportMediaStorage.persistMediaForEvent(event);
+      await _eventService.saveEvent(persisted);
       if (!mounted) return;
       setState(() => _generating = false);
       Navigator.of(context).push(
@@ -217,7 +219,7 @@ class _HotspotMapScreenState extends State<HotspotMapScreen> {
           builder: (_) => DossierReviewScreen(
             farm: widget.farm,
             farmer: widget.farmer,
-            event: event,
+            event: persisted,
           ),
         ),
       );
