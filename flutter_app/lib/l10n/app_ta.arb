@@ -1,0 +1,105 @@
+{
+  "@@locale": "ta",
+  "appTitle": "agroSentinel",
+  "cancel": "ரத்து செய்",
+  "delete": "நீக்கு",
+  "update": "புதுப்பி",
+  "signOut": "வெளியேறு",
+  "settingsTitle": "அமைப்புகள்",
+  "changePasswordTitle": "கடவுச்சொல் மாற்று",
+  "currentPassword": "தற்போதைய கடவுச்சொல்",
+  "currentPasswordRequired": "தற்போதைய கடவுச்சொல் தேவை",
+  "newPassword": "புதிய கடவுச்சொல்",
+  "newPasswordMinLength": "புதிய கடவுச்சொல் குறைந்தது 6 எழுத்துகள் இருக்க வேண்டும்",
+  "passwordUpdated": "கடவுச்சொல் புதுப்பிக்கப்பட்டது",
+  "deleteAccountTitle": "கணக்கை நீக்கு",
+  "deleteAccountConfirmation": "இது உங்கள் கணக்கை நிரந்தரமாக நீக்கி, நீங்கள் வெளியேற்றப்படுவீர்கள்.",
+  "pushNotifications": "புஷ் அறிவிப்புகள்",
+  "pushNotificationsSubtitle": "புதிய ஹாட்ஸ்பாட்களுக்கு ஆப் விழிப்பூட்டல்கள் பெறுக",
+  "emailAlerts": "மின்னஞ்சல் எச்சரிக்கைகள்",
+  "emailAlertsSubtitle": "மின்னஞ்சல் வழியாக உரிமைகோரல் மற்றும் ஆலோசனை புதுப்பிப்புகள் பெறுக",
+  "offlineSync": "ஆஃப்லைன் ஒத்திசைவு",
+  "offlineSyncSubtitle": "குறைந்த இணைப்புக்கு கள தரவை தற்காலிகமாக சேமி",
+  "changePassword": "கடவுச்சொல் மாற்று",
+  "changePasswordSubtitle": "உங்கள் கணக்கு தகவல்களை புதுப்பி",
+  "deleteAccount": "கணக்கை நீக்கு",
+  "deleteAccountSubtitle": "உங்கள் கணக்கை நிரந்தரமாக நீக்கு",
+  "language": "மொழி",
+  "selectLanguage": "உங்கள் விருப்பமான மொழியை தேர்ந்தெடுக்கவும்",
+  "hello": "வணக்கம், {name}",
+  "@hello": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "myFarms": "என் பண்ணைகள்",
+  "add": "சேர்",
+  "quickActions": "விரைவு செயல்கள்",
+  "reportDisaster": "பேரிடரை புகாரளி",
+  "reportDisasterSubtitle": "பண்ணைக்கு புதிய சேத அறிக்கை தொடங்கு",
+  "addNewFarm": "புதிய பண்ணை சேர்",
+  "addNewFarmSubtitle": "எல்லையுடன் புதிய விவசாய நிலம் பதிவு செய்",
+  "disasterEvents": "பேரிடர் நிகழ்வுகள்",
+  "selectFarmToReport": "புகாரளிக்க பண்ணை தேர்ந்தெடு",
+  "pleaseAddFarmFirst": "முதலில் ஒரு பண்ணை சேர்க்கவும்.",
+  "couldNotLoadFarms": "பண்ணைகளை ஏற்ற முடியவில்லை.",
+  "loadingFarms": "பண்ணைகள் ஏற்றப்படுகின்றன…",
+  "noDisasterReportsYet": "இன்னும் பேரிடர் அறிக்கைகள் இல்லை",
+  "noFarmsAdded": "இன்னும் பண்ணைகள் சேர்க்கப்படவில்லை",
+  "addFirstFarmDescription": "கண்காணிப்பு மற்றும் அறிக்கையிடல் தொடங்க முதல் பண்ணையை சேர்க்கவும்.",
+  "addFirstFarm": "முதல் பண்ணை சேர்",
+  "loadingEvents": "நிகழ்வுகள் ஏற்றப்படுகின்றன…",
+  "couldNotLoadEvents": "நிகழ்வுகளை ஏற்ற முடியவில்லை.",
+  "addFarm": "பண்ணை சேர்",
+  "statusSubmitted": "அறிக்கை உருவாக்கப்பட்டது",
+  "statusVerified": "சரிபார்க்கப்பட்டது",
+  "statusDraft": "வரைவு",
+  "navHome": "முகப்பு",
+  "navClaims": "உரிமைகோரல்கள்",
+  "navProfile": "சுயவிவரம்",
+  "navMore": "மேலும்",
+  "walkingToHotspot": "ஹாட்ஸ்பாட்டிற்கு நடந்து செல்கிறோம்...",
+  "simulateApproach": "அணுகுமுறை உருவகிக்க (டெமோ)",
+  "captureEvidence": "சான்று கைப்பற்று",
+  "getWithin10m": "திறக்க 10 மீட்டருக்குள் வாருங்கள்",
+  "damageAssessment": "சேத மதிப்பீடு",
+  "satelliteNdviData": "செயற்கைக்கோள் NDVI தரவு",
+  "gpsNavigation": "GPS வழிசெலுத்தல்",
+  "proximityToDamageZone": "சேத மண்டலத்திற்கு அருகில்",
+  "captureUnlocked": "கைப்பற்றல் திறக்கப்பட்டது",
+  "unlockAt10m": "10 மீட்டரில் திறக்கவும்",
+  "needlePoints": "ஊசி செயற்கைக்கோள் கண்டறிந்த ஹாட்ஸ்பாட்டை நோக்கி சுட்டுகிறது",
+  "healthy": "ஆரோக்கியமான",
+  "damaged": "சேதமடைந்த",
+  "downloadDamageReport": "Download damage report",
+  "damageReportPdfReady": "PDF ready — use Save or Share from the preview.",
+  "couldNotBuildPdf": "Could not build PDF: {error}",
+  "@couldNotBuildPdf": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "farmNotFoundForReport": "Could not find farm for this report.",
+  "editDraftReport": "Edit draft",
+  "deleteDraftReport": "Delete draft",
+  "editDraftReportTitle": "Edit draft report",
+  "confirmDeleteDraftTitle": "Delete this draft?",
+  "confirmDeleteDraftMessage": "This will permanently remove this draft report. This cannot be undone.",
+  "reportDeleted": "Report deleted",
+  "reportGeneratedSuccess": "அறிக்கை வெற்றிகரமாக உருவாக்கப்பட்டது",
+  "confirmDeleteSubmittedTitle": "இந்த அறிக்கையை நீக்கவா?",
+  "confirmDeleteSubmittedMessage": "This will permanently remove this report and its stored data. This cannot be undone.",
+  "deleteSubmittedReport": "Delete report",
+  "couldNotDeleteDraft": "Could not delete: {error}",
+  "@couldNotDeleteDraft": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  }
+}

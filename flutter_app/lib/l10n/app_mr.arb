@@ -1,0 +1,105 @@
+{
+  "@@locale": "mr",
+  "appTitle": "agroSentinel",
+  "cancel": "रद्द करा",
+  "delete": "हटवा",
+  "update": "अपडेट करा",
+  "signOut": "साइन आउट",
+  "settingsTitle": "सेटिंग्ज",
+  "changePasswordTitle": "पासवर्ड बदला",
+  "currentPassword": "सध्याचा पासवर्ड",
+  "currentPasswordRequired": "सध्याचा पासवर्ड आवश्यक आहे",
+  "newPassword": "नवीन पासवर्ड",
+  "newPasswordMinLength": "नवीन पासवर्ड किमान 6 अक्षरांचा असावा",
+  "passwordUpdated": "पासवर्ड अपडेट झाला",
+  "deleteAccountTitle": "खाते हटवा",
+  "deleteAccountConfirmation": "हे तुमचे खाते कायमचे काढून टाकेल आणि तुम्ही लॉग आउट व्हाल.",
+  "pushNotifications": "पुश सूचना",
+  "pushNotificationsSubtitle": "नवीन हॉटस्पॉटसाठी ॲप इशारे मिळवा",
+  "emailAlerts": "ईमेल इशारे",
+  "emailAlertsSubtitle": "ईमेलद्वारे दावा आणि सल्ला अपडेट मिळवा",
+  "offlineSync": "ऑफलाइन सिंक",
+  "offlineSyncSubtitle": "कमी कनेक्टिव्हिटीसाठी फील्ड डेटा कॅश करा",
+  "changePassword": "पासवर्ड बदला",
+  "changePasswordSubtitle": "तुमची खाते माहिती अपडेट करा",
+  "deleteAccount": "खाते हटवा",
+  "deleteAccountSubtitle": "तुमचे खाते कायमचे काढून टाका",
+  "language": "भाषा",
+  "selectLanguage": "तुमची आवडती भाषा निवडा",
+  "hello": "नमस्ते, {name}",
+  "@hello": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "myFarms": "माझी शेतं",
+  "add": "जोडा",
+  "quickActions": "जलद कृती",
+  "reportDisaster": "आपत्ती नोंदवा",
+  "reportDisasterSubtitle": "शेतासाठी नवा नुकसान अहवाल सुरू करा",
+  "addNewFarm": "नवीन शेत जोडा",
+  "addNewFarmSubtitle": "सीमेसह नवी शेत नोंदणी करा",
+  "disasterEvents": "आपत्ती घटना",
+  "selectFarmToReport": "नोंदवण्यासाठी शेत निवडा",
+  "pleaseAddFarmFirst": "कृपया आधी शेत जोडा.",
+  "couldNotLoadFarms": "शेतं लोड होऊ शकली नाहीत.",
+  "loadingFarms": "शेतं लोड होत आहेत…",
+  "noDisasterReportsYet": "अद्याप कोणताही आपत्ती अहवाल नाही",
+  "noFarmsAdded": "अद्याप कोणतेही शेत जोडले नाही",
+  "addFirstFarmDescription": "ट्रॅकिंग आणि अहवालासाठी पहिले शेत जोडा.",
+  "addFirstFarm": "पहिले शेत जोडा",
+  "loadingEvents": "घटना लोड होत आहेत…",
+  "couldNotLoadEvents": "घटना लोड होऊ शकल्या नाहीत.",
+  "addFarm": "शेत जोडा",
+  "statusSubmitted": "अहवाल तयार",
+  "statusVerified": "सत्यापित",
+  "statusDraft": "मसुदा",
+  "navHome": "मुख्यपृष्ठ",
+  "navClaims": "दावे",
+  "navProfile": "प्रोफाइल",
+  "navMore": "अधिक",
+  "walkingToHotspot": "हॉटस्पॉटकडे चालत जात आहोत...",
+  "simulateApproach": "जवळ येण्याचे अनुकरण (डेमो)",
+  "captureEvidence": "पुरावा कॅप्चर करा",
+  "getWithin10m": "अनलॉक करण्यासाठी 10 मी. च्या आत या",
+  "damageAssessment": "नुकसान मूल्यांकन",
+  "satelliteNdviData": "उपग्रह NDVI डेटा",
+  "gpsNavigation": "GPS नेव्हिगेशन",
+  "proximityToDamageZone": "नुकसान क्षेत्राजवळ",
+  "captureUnlocked": "कॅप्चर अनलॉक",
+  "unlockAt10m": "10 मी. वर अनलॉक",
+  "needlePoints": "सुई उपग्रह-शोधित हॉटस्पॉटकडे दाखवते",
+  "healthy": "निरोगी",
+  "damaged": "नुकसानग्रस्त",
+  "downloadDamageReport": "Download damage report",
+  "damageReportPdfReady": "PDF ready — use Save or Share from the preview.",
+  "couldNotBuildPdf": "Could not build PDF: {error}",
+  "@couldNotBuildPdf": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "farmNotFoundForReport": "Could not find farm for this report.",
+  "editDraftReport": "Edit draft",
+  "deleteDraftReport": "Delete draft",
+  "editDraftReportTitle": "Edit draft report",
+  "confirmDeleteDraftTitle": "Delete this draft?",
+  "confirmDeleteDraftMessage": "This will permanently remove this draft report. This cannot be undone.",
+  "reportDeleted": "Report deleted",
+  "reportGeneratedSuccess": "अहवाल यशस्वीरित्या तयार झाला",
+  "confirmDeleteSubmittedTitle": "हा अहवाल हटवायचा?",
+  "confirmDeleteSubmittedMessage": "This will permanently remove this report and its stored data. This cannot be undone.",
+  "deleteSubmittedReport": "Delete report",
+  "couldNotDeleteDraft": "Could not delete: {error}",
+  "@couldNotDeleteDraft": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  }
+}

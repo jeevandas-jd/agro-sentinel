@@ -1,0 +1,105 @@
+{
+  "@@locale": "hi",
+  "appTitle": "agroSentinel",
+  "cancel": "रद्द करें",
+  "delete": "हटाएं",
+  "update": "अपडेट करें",
+  "signOut": "साइन आउट",
+  "settingsTitle": "सेटिंग्स",
+  "changePasswordTitle": "पासवर्ड बदलें",
+  "currentPassword": "वर्तमान पासवर्ड",
+  "currentPasswordRequired": "वर्तमान पासवर्ड आवश्यक है",
+  "newPassword": "नया पासवर्ड",
+  "newPasswordMinLength": "नया पासवर्ड कम से कम 6 अक्षरों का होना चाहिए",
+  "passwordUpdated": "पासवर्ड अपडेट हो गया",
+  "deleteAccountTitle": "खाता हटाएं",
+  "deleteAccountConfirmation": "इससे आपका खाता स्थायी रूप से हट जाएगा और आप लॉग आउट हो जाएंगे।",
+  "pushNotifications": "पुश नोटिफिकेशन",
+  "pushNotificationsSubtitle": "नए हॉटस्पॉट के लिए ऐप अलर्ट प्राप्त करें",
+  "emailAlerts": "ईमेल अलर्ट",
+  "emailAlertsSubtitle": "ईमेल द्वारा दावा और सलाह अपडेट प्राप्त करें",
+  "offlineSync": "ऑफलाइन सिंक",
+  "offlineSyncSubtitle": "कम कनेक्टिविटी के लिए फील्ड डेटा कैश करें",
+  "changePassword": "पासवर्ड बदलें",
+  "changePasswordSubtitle": "अपनी खाता जानकारी अपडेट करें",
+  "deleteAccount": "खाता हटाएं",
+  "deleteAccountSubtitle": "अपना खाता स्थायी रूप से हटाएं",
+  "language": "भाषा",
+  "selectLanguage": "अपनी पसंदीदा भाषा चुनें",
+  "hello": "नमस्ते, {name}",
+  "@hello": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "myFarms": "मेरे खेत",
+  "add": "जोड़ें",
+  "quickActions": "त्वरित कार्य",
+  "reportDisaster": "आपदा रिपोर्ट करें",
+  "reportDisasterSubtitle": "खेत के लिए नई क्षति रिपोर्ट शुरू करें",
+  "addNewFarm": "नया खेत जोड़ें",
+  "addNewFarmSubtitle": "सीमा के साथ नई कृषि भूखंड दर्ज करें",
+  "disasterEvents": "आपदा घटनाएं",
+  "selectFarmToReport": "रिपोर्ट करने के लिए खेत चुनें",
+  "pleaseAddFarmFirst": "कृपया पहले एक खेत जोड़ें।",
+  "couldNotLoadFarms": "खेत लोड नहीं हो सके।",
+  "loadingFarms": "खेत लोड हो रहे हैं…",
+  "noDisasterReportsYet": "अभी तक कोई आपदा रिपोर्ट नहीं",
+  "noFarmsAdded": "अभी तक कोई खेत नहीं जोड़ा गया",
+  "addFirstFarmDescription": "ट्रैकिंग और रिपोर्टिंग शुरू करने के लिए अपना पहला खेत जोड़ें।",
+  "addFirstFarm": "पहला खेत जोड़ें",
+  "loadingEvents": "घटनाएं लोड हो रही हैं…",
+  "couldNotLoadEvents": "घटनाएं लोड नहीं हो सकीं।",
+  "addFarm": "खेत जोड़ें",
+  "statusSubmitted": "रिपोर्ट तैयार",
+  "statusVerified": "सत्यापित",
+  "statusDraft": "मसौदा",
+  "navHome": "होम",
+  "navClaims": "दावे",
+  "navProfile": "प्रोफ़ाइल",
+  "navMore": "अधिक",
+  "walkingToHotspot": "हॉटस्पॉट की ओर चल रहे हैं...",
+  "simulateApproach": "दृष्टिकोण अनुकरण (डेमो)",
+  "captureEvidence": "साक्ष्य कैप्चर करें",
+  "getWithin10m": "अनलॉक करने के लिए 10 मीटर के भीतर आएं",
+  "damageAssessment": "क्षति आकलन",
+  "satelliteNdviData": "उपग्रह NDVI डेटा",
+  "gpsNavigation": "GPS नेविगेशन",
+  "proximityToDamageZone": "क्षति क्षेत्र से निकटता",
+  "captureUnlocked": "कैप्चर अनलॉक",
+  "unlockAt10m": "10 मीटर पर अनलॉक",
+  "needlePoints": "सुई उपग्रह-पता लगाए हॉटस्पॉट की ओर इशारा करती है",
+  "healthy": "स्वस्थ",
+  "damaged": "क्षतिग्रस्त",
+  "downloadDamageReport": "Download damage report",
+  "damageReportPdfReady": "PDF ready — use Save or Share from the preview.",
+  "couldNotBuildPdf": "Could not build PDF: {error}",
+  "@couldNotBuildPdf": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "farmNotFoundForReport": "Could not find farm for this report.",
+  "editDraftReport": "Edit draft",
+  "deleteDraftReport": "Delete draft",
+  "editDraftReportTitle": "Edit draft report",
+  "confirmDeleteDraftTitle": "Delete this draft?",
+  "confirmDeleteDraftMessage": "This will permanently remove this draft report. This cannot be undone.",
+  "reportDeleted": "Report deleted",
+  "reportGeneratedSuccess": "रिपोर्ट सफलतापूर्वक तैयार हो गई",
+  "confirmDeleteSubmittedTitle": "इस रिपोर्ट को हटाएं?",
+  "confirmDeleteSubmittedMessage": "This will permanently remove this report and its stored data. This cannot be undone.",
+  "deleteSubmittedReport": "Delete report",
+  "couldNotDeleteDraft": "Could not delete: {error}",
+  "@couldNotDeleteDraft": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  }
+}

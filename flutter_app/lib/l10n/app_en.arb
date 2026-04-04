@@ -1,0 +1,105 @@
+{
+  "@@locale": "en",
+  "appTitle": "agroSentinel",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "update": "Update",
+  "signOut": "Sign out",
+  "settingsTitle": "Settings",
+  "changePasswordTitle": "Change Password",
+  "currentPassword": "Current password",
+  "currentPasswordRequired": "Current password is required",
+  "newPassword": "New password",
+  "newPasswordMinLength": "New password must be at least 6 characters",
+  "passwordUpdated": "Password updated",
+  "deleteAccountTitle": "Delete Account",
+  "deleteAccountConfirmation": "This will permanently remove your account and log you out.",
+  "pushNotifications": "Push notifications",
+  "pushNotificationsSubtitle": "Receive app alerts for new hotspots",
+  "emailAlerts": "Email alerts",
+  "emailAlertsSubtitle": "Get claim and advisory updates by email",
+  "offlineSync": "Offline sync",
+  "offlineSyncSubtitle": "Cache field data for low connectivity",
+  "changePassword": "Change password",
+  "changePasswordSubtitle": "Update your account credentials",
+  "deleteAccount": "Delete account",
+  "deleteAccountSubtitle": "Permanently remove your account",
+  "language": "Language",
+  "selectLanguage": "Select your preferred language",
+  "hello": "Hello, {name}",
+  "@hello": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "myFarms": "My Farms",
+  "add": "Add",
+  "quickActions": "Quick Actions",
+  "reportDisaster": "Report Disaster",
+  "reportDisasterSubtitle": "Start a new damage report for a farm",
+  "addNewFarm": "Add New Farm",
+  "addNewFarmSubtitle": "Register a new farm plot with boundary",
+  "disasterEvents": "Disaster Events",
+  "selectFarmToReport": "Select Farm to Report",
+  "pleaseAddFarmFirst": "Please add a farm first.",
+  "couldNotLoadFarms": "Could not load farms.",
+  "loadingFarms": "Loading farms\u2026",
+  "noDisasterReportsYet": "No disaster reports yet",
+  "noFarmsAdded": "No farms added yet",
+  "addFirstFarmDescription": "Add your first farm to start tracking and reporting.",
+  "addFirstFarm": "Add First Farm",
+  "loadingEvents": "Loading events\u2026",
+  "couldNotLoadEvents": "Could not load events.",
+  "addFarm": "Add Farm",
+  "statusSubmitted": "Report generated",
+  "statusVerified": "Verified",
+  "statusDraft": "Draft",
+  "navHome": "Home",
+  "navClaims": "Claims",
+  "navProfile": "Profile",
+  "navMore": "More",
+  "walkingToHotspot": "Walking to hotspot...",
+  "simulateApproach": "Simulate Approach (Demo)",
+  "captureEvidence": "Capture Evidence",
+  "getWithin10m": "Get within 10 m to unlock",
+  "damageAssessment": "Damage Assessment",
+  "satelliteNdviData": "Satellite NDVI Data",
+  "gpsNavigation": "GPS Navigation",
+  "proximityToDamageZone": "PROXIMITY TO DAMAGE ZONE",
+  "captureUnlocked": "CAPTURE UNLOCKED",
+  "unlockAt10m": "UNLOCK AT 10 m",
+  "needlePoints": "Needle points toward satellite-detected hotspot",
+  "healthy": "Healthy",
+  "damaged": "Damaged",
+  "downloadDamageReport": "Download damage report",
+  "damageReportPdfReady": "PDF ready — use Save or Share from the preview.",
+  "couldNotBuildPdf": "Could not build PDF: {error}",
+  "@couldNotBuildPdf": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "farmNotFoundForReport": "Could not find farm for this report.",
+  "editDraftReport": "Edit draft",
+  "deleteDraftReport": "Delete draft",
+  "editDraftReportTitle": "Edit draft report",
+  "confirmDeleteDraftTitle": "Delete this draft?",
+  "confirmDeleteDraftMessage": "This will permanently remove this draft report. This cannot be undone.",
+  "reportDeleted": "Report deleted",
+  "reportGeneratedSuccess": "Report generated successfully",
+  "confirmDeleteSubmittedTitle": "Delete this report?",
+  "confirmDeleteSubmittedMessage": "This will permanently remove this report and its stored data. This cannot be undone.",
+  "deleteSubmittedReport": "Delete report",
+  "couldNotDeleteDraft": "Could not delete: {error}",
+  "@couldNotDeleteDraft": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  }
+}

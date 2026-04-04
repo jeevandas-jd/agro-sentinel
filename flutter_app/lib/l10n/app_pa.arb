@@ -1,0 +1,105 @@
+{
+  "@@locale": "pa",
+  "appTitle": "agroSentinel",
+  "cancel": "ਰੱਦ ਕਰੋ",
+  "delete": "ਮਿਟਾਓ",
+  "update": "ਅਪਡੇਟ",
+  "signOut": "ਸਾਈਨ ਆਊਟ",
+  "settingsTitle": "ਸੈਟਿੰਗਾਂ",
+  "changePasswordTitle": "ਪਾਸਵਰਡ ਬਦਲੋ",
+  "currentPassword": "ਮੌਜੂਦਾ ਪਾਸਵਰਡ",
+  "currentPasswordRequired": "ਮੌਜੂਦਾ ਪਾਸਵਰਡ ਲਾਜ਼ਮੀ ਹੈ",
+  "newPassword": "ਨਵਾਂ ਪਾਸਵਰਡ",
+  "newPasswordMinLength": "ਨਵਾਂ ਪਾਸਵਰਡ ਘੱਟੋ-ਘੱਟ 6 ਅੱਖਰਾਂ ਦਾ ਹੋਣਾ ਚਾਹੀਦਾ",
+  "passwordUpdated": "ਪਾਸਵਰਡ ਅਪਡੇਟ ਹੋ ਗਿਆ",
+  "deleteAccountTitle": "ਖਾਤਾ ਮਿਟਾਓ",
+  "deleteAccountConfirmation": "ਇਹ ਤੁਹਾਡਾ ਖਾਤਾ ਸਥਾਈ ਤੌਰ ਤੇ ਹਟਾ ਦੇਵੇਗਾ ਅਤੇ ਤੁਸੀਂ ਲੌਗ ਆਉਟ ਹੋ ਜਾਓਗੇ।",
+  "pushNotifications": "ਪੁਸ਼ ਸੂਚਨਾਵਾਂ",
+  "pushNotificationsSubtitle": "ਨਵੇਂ ਹਾਟਸਪਾਟ ਲਈ ਐਪ ਚੇਤਾਵਨੀਆਂ ਪ੍ਰਾਪਤ ਕਰੋ",
+  "emailAlerts": "ਈਮੇਲ ਚੇਤਾਵਨੀਆਂ",
+  "emailAlertsSubtitle": "ਈਮੇਲ ਰਾਹੀਂ ਦਾਅਵਾ ਅਤੇ ਸਲਾਹ ਅਪਡੇਟ ਪ੍ਰਾਪਤ ਕਰੋ",
+  "offlineSync": "ਆਫਲਾਈਨ ਸਿੰਕ",
+  "offlineSyncSubtitle": "ਘੱਟ ਕਨੈਕਟੀਵਿਟੀ ਲਈ ਫੀਲਡ ਡਾਟਾ ਕੈਸ਼ ਕਰੋ",
+  "changePassword": "ਪਾਸਵਰਡ ਬਦਲੋ",
+  "changePasswordSubtitle": "ਆਪਣੇ ਖਾਤੇ ਦੀ ਜਾਣਕਾਰੀ ਅਪਡੇਟ ਕਰੋ",
+  "deleteAccount": "ਖਾਤਾ ਮਿਟਾਓ",
+  "deleteAccountSubtitle": "ਆਪਣਾ ਖਾਤਾ ਸਥਾਈ ਤੌਰ ਤੇ ਹਟਾਓ",
+  "language": "ਭਾਸ਼ਾ",
+  "selectLanguage": "ਆਪਣੀ ਪਸੰਦੀਦਾ ਭਾਸ਼ਾ ਚੁਣੋ",
+  "hello": "ਸਤ ਸ੍ਰੀ ਅਕਾਲ, {name}",
+  "@hello": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "myFarms": "ਮੇਰੇ ਖੇਤ",
+  "add": "ਜੋੜੋ",
+  "quickActions": "ਤੇਜ਼ ਕਾਰਵਾਈਆਂ",
+  "reportDisaster": "ਆਫਤ ਰਿਪੋਰਟ ਕਰੋ",
+  "reportDisasterSubtitle": "ਖੇਤ ਲਈ ਨਵੀਂ ਨੁਕਸਾਨ ਰਿਪੋਰਟ ਸ਼ੁਰੂ ਕਰੋ",
+  "addNewFarm": "ਨਵਾਂ ਖੇਤ ਜੋੜੋ",
+  "addNewFarmSubtitle": "ਸੀਮਾ ਨਾਲ ਨਵੀਂ ਖੇਤੀਬਾੜੀ ਜ਼ਮੀਨ ਦਰਜ ਕਰੋ",
+  "disasterEvents": "ਆਫਤ ਘਟਨਾਵਾਂ",
+  "selectFarmToReport": "ਰਿਪੋਰਟ ਕਰਨ ਲਈ ਖੇਤ ਚੁਣੋ",
+  "pleaseAddFarmFirst": "ਕਿਰਪਾ ਕਰਕੇ ਪਹਿਲਾਂ ਖੇਤ ਜੋੜੋ।",
+  "couldNotLoadFarms": "ਖੇਤ ਲੋਡ ਨਹੀਂ ਹੋ ਸਕੇ।",
+  "loadingFarms": "ਖੇਤ ਲੋਡ ਹੋ ਰਹੇ ਹਨ…",
+  "noDisasterReportsYet": "ਅਜੇ ਤੱਕ ਕੋਈ ਆਫਤ ਰਿਪੋਰਟ ਨਹੀਂ",
+  "noFarmsAdded": "ਅਜੇ ਤੱਕ ਕੋਈ ਖੇਤ ਨਹੀਂ ਜੋੜਿਆ",
+  "addFirstFarmDescription": "ਟ੍ਰੈਕਿੰਗ ਅਤੇ ਰਿਪੋਰਟਿੰਗ ਸ਼ੁਰੂ ਕਰਨ ਲਈ ਪਹਿਲਾ ਖੇਤ ਜੋੜੋ।",
+  "addFirstFarm": "ਪਹਿਲਾ ਖੇਤ ਜੋੜੋ",
+  "loadingEvents": "ਘਟਨਾਵਾਂ ਲੋਡ ਹੋ ਰਹੀਆਂ ਹਨ…",
+  "couldNotLoadEvents": "ਘਟਨਾਵਾਂ ਲੋਡ ਨਹੀਂ ਹੋ ਸਕੀਆਂ।",
+  "addFarm": "ਖੇਤ ਜੋੜੋ",
+  "statusSubmitted": "ਰਿਪੋਰਟ ਤਿਆਰ",
+  "statusVerified": "ਤਸਦੀਕ",
+  "statusDraft": "ਡਰਾਫਟ",
+  "navHome": "ਹੋਮ",
+  "navClaims": "ਦਾਅਵੇ",
+  "navProfile": "ਪ੍ਰੋਫਾਈਲ",
+  "navMore": "ਹੋਰ",
+  "walkingToHotspot": "ਹਾਟਸਪਾਟ ਵੱਲ ਜਾ ਰਹੇ ਹਾਂ...",
+  "simulateApproach": "ਨੇੜੇ ਆਉਣ ਦੀ ਨਕਲ (ਡੈਮੋ)",
+  "captureEvidence": "ਸਬੂਤ ਕੈਪਚਰ ਕਰੋ",
+  "getWithin10m": "ਅਨਲੌਕ ਕਰਨ ਲਈ 10 ਮੀ. ਅੰਦਰ ਆਓ",
+  "damageAssessment": "ਨੁਕਸਾਨ ਮੁਲਾਂਕਣ",
+  "satelliteNdviData": "ਸੈਟੇਲਾਈਟ NDVI ਡਾਟਾ",
+  "gpsNavigation": "GPS ਨੇਵੀਗੇਸ਼ਨ",
+  "proximityToDamageZone": "ਨੁਕਸਾਨ ਜ਼ੋਨ ਦੇ ਨੇੜੇ",
+  "captureUnlocked": "ਕੈਪਚਰ ਅਨਲੌਕ",
+  "unlockAt10m": "10 ਮੀ. 'ਤੇ ਅਨਲੌਕ",
+  "needlePoints": "ਸੂਈ ਸੈਟੇਲਾਈਟ ਤੋਂ ਖੋਜੇ ਹਾਟਸਪਾਟ ਵੱਲ ਇਸ਼ਾਰਾ ਕਰਦੀ ਹੈ",
+  "healthy": "ਸਿਹਤਮੰਦ",
+  "damaged": "ਨੁਕਸਾਨਿਆ",
+  "downloadDamageReport": "Download damage report",
+  "damageReportPdfReady": "PDF ready — use Save or Share from the preview.",
+  "couldNotBuildPdf": "Could not build PDF: {error}",
+  "@couldNotBuildPdf": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "farmNotFoundForReport": "Could not find farm for this report.",
+  "editDraftReport": "Edit draft",
+  "deleteDraftReport": "Delete draft",
+  "editDraftReportTitle": "Edit draft report",
+  "confirmDeleteDraftTitle": "Delete this draft?",
+  "confirmDeleteDraftMessage": "This will permanently remove this draft report. This cannot be undone.",
+  "reportDeleted": "Report deleted",
+  "reportGeneratedSuccess": "ਰਿਪੋਰਟ ਸਫਲਤਾਪੂਰਵਕ ਤਿਆਰ ਹੋਈ",
+  "confirmDeleteSubmittedTitle": "ਇਹ ਰਿਪੋਰਟ ਮਿਟਾਓ?",
+  "confirmDeleteSubmittedMessage": "This will permanently remove this report and its stored data. This cannot be undone.",
+  "deleteSubmittedReport": "Delete report",
+  "couldNotDeleteDraft": "Could not delete: {error}",
+  "@couldNotDeleteDraft": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  }
+}

@@ -1,0 +1,105 @@
+{
+  "@@locale": "gu",
+  "appTitle": "agroSentinel",
+  "cancel": "રદ કરો",
+  "delete": "કાઢી નાખો",
+  "update": "અપડેટ",
+  "signOut": "સાઇન આઉટ",
+  "settingsTitle": "સેટિંગ્સ",
+  "changePasswordTitle": "પાસવર્ડ બદલો",
+  "currentPassword": "વર્તમાન પાસવર્ડ",
+  "currentPasswordRequired": "વર્તમાન પાસવર્ડ જરૂરી છે",
+  "newPassword": "નવો પાસવર્ડ",
+  "newPasswordMinLength": "નવો પાસવર્ડ ઓછામાં ઓછો 6 અક્ષરોનો હોવો જોઈએ",
+  "passwordUpdated": "પાસવર્ડ અપડેટ થઈ ગયો",
+  "deleteAccountTitle": "એકાઉન્ટ ડિલીટ કરો",
+  "deleteAccountConfirmation": "આ તમારા એકાઉન્ટને કાયમ માટે દૂર કરશે અને તમે લૉગ આઉટ થઈ જશો.",
+  "pushNotifications": "પૂશ નોટિફિકેશન",
+  "pushNotificationsSubtitle": "નવા હોટસ્પોટ માટે ઍપ ઍલર્ટ મેળવો",
+  "emailAlerts": "ઇ-મેઇલ ઍલર્ટ",
+  "emailAlertsSubtitle": "ઇ-મેઇલ દ્વારા દાવા અને સલાહ અપડેટ મેળવો",
+  "offlineSync": "ઑફલાઇન સિંક",
+  "offlineSyncSubtitle": "ઓછી કનેક્ટિવિટી માટે ફીલ્ડ ડેટા કૅશ કરો",
+  "changePassword": "પાસવર્ડ બદલો",
+  "changePasswordSubtitle": "તમારી ખાતાની માહિતી અપડેટ કરો",
+  "deleteAccount": "એકાઉન્ટ ડિલીટ કરો",
+  "deleteAccountSubtitle": "તમારું એકાઉન્ટ કાયમ માટે દૂર કરો",
+  "language": "ભાષા",
+  "selectLanguage": "તમારી પ્રિય ભાષા પસંદ કરો",
+  "hello": "નમસ્તે, {name}",
+  "@hello": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "myFarms": "મારા ખેતર",
+  "add": "ઉમેરો",
+  "quickActions": "ઝડપી ક્રિયાઓ",
+  "reportDisaster": "આફત નોંધાવો",
+  "reportDisasterSubtitle": "ખેતર માટે નવો નુકસાન રિપોર્ટ શરૂ કરો",
+  "addNewFarm": "નવું ખેતર ઉમેરો",
+  "addNewFarmSubtitle": "સીમા સાથે નવી કૃષિ ભૂમિ નોંધો",
+  "disasterEvents": "આફત ઘટનાઓ",
+  "selectFarmToReport": "નોંધાવવા ખેતર પસંદ કરો",
+  "pleaseAddFarmFirst": "કૃપા કરીને પ્રથમ ખેતર ઉમેરો.",
+  "couldNotLoadFarms": "ખેતર લોડ નહીં થઈ શક્યા.",
+  "loadingFarms": "ખેતર લોડ થઈ રહ્યા છે…",
+  "noDisasterReportsYet": "હજી સુધી કોઈ આફત રિપોર્ટ નથી",
+  "noFarmsAdded": "હજી સુધી કોઈ ખેતર ઉમેર્યું નથી",
+  "addFirstFarmDescription": "ટ્રૅકિંગ અને રિપોર્ટિંગ શરૂ કરવા પ્રથમ ખેતર ઉમેરો.",
+  "addFirstFarm": "પ્રથમ ખેતર ઉમેરો",
+  "loadingEvents": "ઘટનાઓ લોડ થઈ રહી છે…",
+  "couldNotLoadEvents": "ઘટનાઓ લોડ નહીં થઈ શકી.",
+  "addFarm": "ખેતર ઉમેરો",
+  "statusSubmitted": "રિપોર્ટ જનરેટ",
+  "statusVerified": "ચકાસાયેલ",
+  "statusDraft": "ડ્રાફ્ટ",
+  "navHome": "હોમ",
+  "navClaims": "દાવા",
+  "navProfile": "પ્રોફ઼ાઇલ",
+  "navMore": "વધુ",
+  "walkingToHotspot": "હોટસ્પોટ ભણી ચાલી રહ્યા છે...",
+  "simulateApproach": "અભિગમ અનુકૃતિ (ડેમો)",
+  "captureEvidence": "પુરાવો મેળવો",
+  "getWithin10m": "અનલૉક કરવા 10 મીટરની અંદર આવો",
+  "damageAssessment": "નુકસાન આકલન",
+  "satelliteNdviData": "ઉપગ્રહ NDVI ડેટા",
+  "gpsNavigation": "GPS નૅવિગેશન",
+  "proximityToDamageZone": "નુકસાન ઝોન નજીક",
+  "captureUnlocked": "કૅપ્ચર અનલૉક",
+  "unlockAt10m": "10 મીટર પર અનલૉક",
+  "needlePoints": "સોય ઉપગ્રહ-શોધ હોટસ્પોટ ભણી ઇશારો કરે છે",
+  "healthy": "સ્વસ્થ",
+  "damaged": "ક્ષતિગ્રસ્ત",
+  "downloadDamageReport": "Download damage report",
+  "damageReportPdfReady": "PDF ready — use Save or Share from the preview.",
+  "couldNotBuildPdf": "Could not build PDF: {error}",
+  "@couldNotBuildPdf": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "farmNotFoundForReport": "Could not find farm for this report.",
+  "editDraftReport": "Edit draft",
+  "deleteDraftReport": "Delete draft",
+  "editDraftReportTitle": "Edit draft report",
+  "confirmDeleteDraftTitle": "Delete this draft?",
+  "confirmDeleteDraftMessage": "This will permanently remove this draft report. This cannot be undone.",
+  "reportDeleted": "Report deleted",
+  "reportGeneratedSuccess": "રિપોર્ટ સફળતાપૂર્વક જનરેટ થયો",
+  "confirmDeleteSubmittedTitle": "આ રિપોર્ટ કાઢી નાખવો?",
+  "confirmDeleteSubmittedMessage": "This will permanently remove this report and its stored data. This cannot be undone.",
+  "deleteSubmittedReport": "Delete report",
+  "couldNotDeleteDraft": "Could not delete: {error}",
+  "@couldNotDeleteDraft": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  }
+}
