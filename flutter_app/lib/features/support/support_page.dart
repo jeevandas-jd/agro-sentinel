@@ -7,12 +7,12 @@ class SupportPage extends StatelessWidget {
 
   static const _faqs = [
     _FaqItem(
-      question: 'What is NDVI and how does AgriSentinel use it?',
+      question: 'What is NDVI and how does agroSentinel use it?',
       answer:
           'NDVI (Normalised Difference Vegetation Index) measures crop health '
           'from satellite imagery. Values range from −1 to 1; healthy crops '
           'score above 0.4, while damaged areas drop significantly. '
-          'AgriSentinel uses Planet NICFI imagery to compute NDVI before and '
+          'agroSentinel uses Planet NICFI imagery to compute NDVI before and '
           'after an event, flagging fields with abnormal drops as damage hotspots.',
     ),
     _FaqItem(
@@ -37,7 +37,7 @@ class SupportPage extends StatelessWidget {
       question: 'What is an AIMS-compliant claim dossier?',
       answer:
           'AIMS (Agricultural Insurance Management System) is the standard '
-          'format for crop insurance claims in India. AgriSentinel generates a '
+          'format for crop insurance claims in India. agroSentinel generates a '
           'PDF dossier containing satellite NDVI data, GPS-geotagged ground '
           'photos, AI damage scores, land parcel details, and an evidence '
           'chain — all formatted for direct submission to insurers or '
@@ -46,15 +46,15 @@ class SupportPage extends StatelessWidget {
     _FaqItem(
       question: 'Can I file a claim without internet connectivity?',
       answer:
-          'Yes. AgriSentinel works offline for evidence capture — photos, GPS '
+          'Yes. agroSentinel works offline for evidence capture — photos, GPS '
           'data, and AI analysis are stored locally. The PDF can be generated '
           'on-device. You will need connectivity to submit the dossier to the '
           'AIMS portal.',
     ),
     _FaqItem(
-      question: 'What satellite data sources does AgriSentinel use?',
+      question: 'What satellite data sources does agroSentinel use?',
       answer:
-          'AgriSentinel uses Planet NICFI (Norway\'s International Climate and '
+          'agroSentinel uses Planet NICFI (Norway\'s International Climate and '
           'Forest Initiative) high-resolution tropical imagery at 4.77 m/pixel. '
           'NDVI analysis is performed via Google Earth Engine. In future, '
           'Sentinel-2 data will also be supported.',
@@ -121,7 +121,7 @@ class SupportPage extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'AgriSentinel Support',
+                        'agroSentinel Support',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 17,

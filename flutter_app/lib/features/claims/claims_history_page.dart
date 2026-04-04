@@ -684,7 +684,7 @@ class _EvidenceChainCard extends StatelessWidget {
     _Step(
       icon: Icons.gps_fixed,
       title: 'GPS Truth Walk',
-      subtitle: 'Farmer navigated to hotspot using AgriSentinel',
+      subtitle: 'Farmer navigated to hotspot using agroSentinel',
       color: AppColors.primary,
       date: '12 Mar 2024',
     ),

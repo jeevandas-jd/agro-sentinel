@@ -24,7 +24,7 @@ Future<void> main() async {
     ),
   );
   await TutorialService().init();
-  runApp(const AgriSentinelApp());
+  runApp(const AgroSentinelApp());
 }
 
 /// InheritedNotifier that exposes [LocaleProvider] to the widget tree.
@@ -42,16 +42,16 @@ class AppLocaleScope extends InheritedNotifier<LocaleProvider> {
   }
 }
 
-class AgriSentinelApp extends StatefulWidget {
+class AgroSentinelApp extends StatefulWidget {
   final AuthService? authService;
 
-  const AgriSentinelApp({super.key, this.authService});
+  const AgroSentinelApp({super.key, this.authService});
 
   @override
-  State<AgriSentinelApp> createState() => _AgriSentinelAppState();
+  State<AgroSentinelApp> createState() => _AgroSentinelAppState();
 }
 
-class _AgriSentinelAppState extends State<AgriSentinelApp> {
+class _AgroSentinelAppState extends State<AgroSentinelApp> {
   final LocaleProvider _localeProvider = LocaleProvider();
 
   @override
@@ -74,7 +74,7 @@ class _AgriSentinelAppState extends State<AgriSentinelApp> {
     return AppLocaleScope(
       notifier: _localeProvider,
       child: MaterialApp(
-        title: 'AgriSentinel',
+        title: 'agroSentinel',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.theme,
         locale: _localeProvider.locale,

@@ -184,7 +184,7 @@ class _RegisterPageState extends State<RegisterPage>
                                           ),
                                           const SizedBox(height: 2),
                                           Text(
-                                            'Set up your AgriSentinel profile',
+                                            'Set up your agroSentinel profile',
                                             style: const TextStyle(
                                               color: AppColors.textMuted,
                                               fontSize: 12,

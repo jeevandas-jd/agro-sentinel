@@ -1,5 +1,5 @@
 name: agrisentinel
-description: "AgriSentinel — Satellite-Guided Crop Damage Verification System"
+description: "agroSentinel — Satellite-Guided Crop Damage Verification System"
 publish_to: 'none'
 
 # The following defines the version and build number for your application.

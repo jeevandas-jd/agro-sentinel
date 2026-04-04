@@ -9,7 +9,7 @@ class AppLocalizationsGu extends AppLocalizations {
   AppLocalizationsGu([String locale = 'gu']) : super(locale);
 
   @override
-  String get appTitle => 'એગ્રીસેન્ટિનેલ';
+  String get appTitle => 'agroSentinel';
 
   @override
   String get cancel => 'રદ કરો';

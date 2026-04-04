@@ -137,7 +137,7 @@ class DamagePreviewPdfService {
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
               pw.Text(
-                'AgriSentinel',
+                'agroSentinel',
                 style: pw.TextStyle(
                   fontSize: 18,
                   fontWeight: pw.FontWeight.bold,
@@ -175,7 +175,7 @@ class DamagePreviewPdfService {
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
           pw.Text(
-            'AgriSentinel • Satellite-guided crop damage verification',
+            'agroSentinel • Satellite-guided crop damage verification',
             style: pw.TextStyle(fontSize: 8, color: PdfColors.grey500),
           ),
           pw.Text(
@@ -230,8 +230,8 @@ class DamagePreviewPdfService {
         : narrativeText.trim();
 
     final pdf = pw.Document(
-      title: 'AgriSentinel Damage Report — ${event.id}',
-      author: 'AgriSentinel',
+      title: 'agroSentinel Damage Report — ${event.id}',
+      author: 'agroSentinel',
     );
 
     final children = <pw.Widget>[
@@ -487,7 +487,7 @@ class DamagePreviewPdfService {
 
   static String fileName(DisasterEventModel event) {
     final safe = event.id.replaceAll(RegExp(r'[^\w\-]+'), '_');
-    return 'AgriSentinel_Damage_Report_$safe.pdf';
+    return 'agroSentinel_Damage_Report_$safe.pdf';
   }
 
   /// Opens the platform print / share / save-as-PDF sheet.
